@@ -2,7 +2,11 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { WebhookEvent } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
+import {
+  createUserFromWebhook,
+  updateUserFromWebhook,
+  deleteUserFromWebhook,
+} from "@/actions/user.actions";
 
 export async function POST(req: Request) {
   // Get the headers
@@ -58,13 +62,13 @@ export async function POST(req: Request) {
   try {
     switch (eventType) {
       case "user.created":
-        await handleUserCreated(evt);
+        await createUserFromWebhook(evt);
         break;
       case "user.updated":
-        await handleUserUpdated(evt);
+        await updateUserFromWebhook(evt);
         break;
       case "user.deleted":
-        await handleUserDeleted(evt);
+        await deleteUserFromWebhook(evt);
         break;
       default:
         console.log(`Unhandled webhook event type: ${eventType}`);
@@ -81,73 +85,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
-
-async function handleUserCreated(evt: WebhookEvent) {
-  if (evt.type !== "user.created") return;
-
-  const { id, email_addresses, first_name, last_name, image_url } = evt.data;
-
-  const primaryEmail = email_addresses.find(
-    (email) => email.id === evt.data.primary_email_address_id
-  );
-
-  if (!primaryEmail?.email_address) {
-    throw new Error("No primary email address found");
-  }
-
-  await prisma.user.create({
-    data: {
-      clerkId: id,
-      email: primaryEmail.email_address,
-      firstName: first_name || null,
-      lastName: last_name || null,
-      imageUrl: image_url || null,
-      role: "member",
-    },
-  });
-
-  console.log(`User created: ${primaryEmail.email_address}`);
-}
-
-async function handleUserUpdated(evt: WebhookEvent) {
-  if (evt.type !== "user.updated") return;
-
-  const { id, email_addresses, first_name, last_name, image_url } = evt.data;
-
-  const primaryEmail = email_addresses.find(
-    (email) => email.id === evt.data.primary_email_address_id
-  );
-
-  if (!primaryEmail?.email_address) {
-    throw new Error("No primary email address found");
-  }
-
-  await prisma.user.update({
-    where: { clerkId: id },
-    data: {
-      email: primaryEmail.email_address,
-      firstName: first_name || null,
-      lastName: last_name || null,
-      imageUrl: image_url || null,
-    },
-  });
-
-  console.log(`User updated: ${primaryEmail.email_address}`);
-}
-
-async function handleUserDeleted(evt: WebhookEvent) {
-  if (evt.type !== "user.deleted") return;
-
-  const { id } = evt.data;
-
-  if (!id) {
-    throw new Error("No user ID found");
-  }
-
-  await prisma.user.delete({
-    where: { clerkId: id },
-  });
-
-  console.log(`User deleted: ${id}`);
 }
