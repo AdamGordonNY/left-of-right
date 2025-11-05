@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserId, getUserRole } from '@/lib/auth';
-import { createSource } from '@/lib/sources';
-import { InsertSource } from '@/lib/database.types';
+import { createSource } from '@/lib/prisma-sources';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, type, url, description, avatar_url, is_global } = body;
+    const { name, type, url, description, avatarUrl, isGlobal } = body;
 
     if (!name || !type || !url) {
       return NextResponse.json(
@@ -28,20 +27,18 @@ export async function POST(request: NextRequest) {
     }
 
     const userRole = await getUserRole();
-    const shouldBeGlobal = is_global && userRole === 'admin';
+    const shouldBeGlobal = isGlobal && userRole === 'admin';
 
-    const sourceData: InsertSource = {
+    const source = await createSource({
       name,
       type,
       url,
       description,
-      avatar_url,
-      created_by_user_id: userId,
-      is_global: shouldBeGlobal,
-      is_active: true,
-    };
-
-    const source = await createSource(sourceData);
+      avatarUrl,
+      createdByUserId: userId,
+      isGlobal: shouldBeGlobal,
+      isActive: true,
+    });
 
     return NextResponse.json({ source }, { status: 201 });
   } catch (error) {

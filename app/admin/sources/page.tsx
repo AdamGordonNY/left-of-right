@@ -1,21 +1,17 @@
 import { redirect } from 'next/navigation';
-import { getUserRole, getUserId } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
-import { Source } from '@/lib/database.types';
+import { getUserRole } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { Source } from '@prisma/client';
 import { Shield, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { AddSourceDialog } from '@/components/sources/add-source-dialog';
 
 async function getGlobalSources(): Promise<Source[]> {
-  const { data, error } = await supabase
-    .from('sources')
-    .select('*')
-    .eq('is_global', true)
-    .order('name');
-
-  if (error) throw error;
-  return data || [];
+  return prisma.source.findMany({
+    where: { isGlobal: true },
+    orderBy: { name: 'asc' },
+  });
 }
 
 export default async function AdminSourcesPage() {
@@ -106,12 +102,12 @@ export default async function AdminSourcesPage() {
                     </a>
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
-                        source.is_active
+                        source.isActive
                           ? 'bg-green-100 text-green-800'
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {source.is_active ? 'Active' : 'Inactive'}
+                      {source.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </div>

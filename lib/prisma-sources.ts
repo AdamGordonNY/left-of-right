@@ -40,6 +40,8 @@ export async function createSource(data: {
   description?: string;
   avatarUrl?: string;
   isActive?: boolean;
+  createdByUserId?: string;
+  isGlobal?: boolean;
 }): Promise<Source> {
   return prisma.source.create({
     data: {
@@ -58,6 +60,7 @@ export async function updateSource(
     description?: string;
     avatarUrl?: string;
     isActive?: boolean;
+    isGlobal?: boolean;
   }
 ): Promise<Source> {
   return prisma.source.update({

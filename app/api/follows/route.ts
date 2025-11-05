@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth';
-import { followSource, unfollowSource, getUserFollows } from '@/lib/follows';
+import { followSource, unfollowSource, getUserFollows } from '@/lib/prisma-follows';
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,16 +29,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { source_id } = body;
+    const { sourceId } = body;
 
-    if (!source_id) {
+    if (!sourceId) {
       return NextResponse.json(
-        { error: 'Missing required field: source_id' },
+        { error: 'Missing required field: sourceId' },
         { status: 400 }
       );
     }
 
-    const follow = await followSource(userId, source_id);
+    const follow = await followSource(userId, sourceId);
 
     return NextResponse.json({ follow }, { status: 201 });
   } catch (error: any) {
@@ -66,7 +66,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const sourceId = searchParams.get('source_id');
+    const sourceId = searchParams.get('sourceId');
 
     if (!sourceId) {
       return NextResponse.json(

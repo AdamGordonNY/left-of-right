@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { SourceWithFollowStatus } from '@/lib/database.types';
+import { SourceWithFollowStatus } from '@/lib/prisma-follows';
 import { toast } from 'sonner';
 
 interface SourceCardProps {
@@ -16,7 +16,7 @@ interface SourceCardProps {
 }
 
 export function SourceCard({ source, showFollowButton = true }: SourceCardProps) {
-  const [isFollowing, setIsFollowing] = useState(source.is_followed);
+  const [isFollowing, setIsFollowing] = useState(source.isFollowed);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -25,7 +25,7 @@ export function SourceCard({ source, showFollowButton = true }: SourceCardProps)
 
     try {
       if (isFollowing) {
-        const response = await fetch(`/api/follows?source_id=${source.id}`, {
+        const response = await fetch(`/api/follows?sourceId=${source.id}`, {
           method: 'DELETE',
         });
 
@@ -39,7 +39,7 @@ export function SourceCard({ source, showFollowButton = true }: SourceCardProps)
         const response = await fetch('/api/follows', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ source_id: source.id }),
+          body: JSON.stringify({ sourceId: source.id }),
         });
 
         if (!response.ok) {
@@ -72,7 +72,7 @@ export function SourceCard({ source, showFollowButton = true }: SourceCardProps)
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={source.avatar_url || undefined} alt={source.name} />
+              <AvatarImage src={source.avatarUrl || undefined} alt={source.name} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div>
@@ -82,7 +82,7 @@ export function SourceCard({ source, showFollowButton = true }: SourceCardProps)
                   <TypeIcon className="mr-1 h-3 w-3" />
                   {source.type}
                 </Badge>
-                {source.is_global && (
+                {source.isGlobal && (
                   <Badge variant="secondary" className="text-xs">
                     Global
                   </Badge>
@@ -105,16 +105,16 @@ export function SourceCard({ source, showFollowButton = true }: SourceCardProps)
           )}
         </div>
       </CardHeader>
-      {(source.description || source.follower_count !== undefined) && (
+      {(source.description || source.followerCount !== undefined) && (
         <CardContent>
           {source.description && (
             <CardDescription className="mb-3">{source.description}</CardDescription>
           )}
           <div className="flex items-center justify-between">
-            {source.follower_count !== undefined && (
+            {source.followerCount !== undefined && (
               <div className="flex items-center text-sm text-muted-foreground">
                 <Users className="mr-1 h-4 w-4" />
-                {source.follower_count} {source.follower_count === 1 ? 'follower' : 'followers'}
+                {source.followerCount} {source.followerCount === 1 ? 'follower' : 'followers'}
               </div>
             )}
             <a

@@ -41,8 +41,8 @@ const formSchema = z.object({
   type: z.enum(['youtube', 'substack']),
   url: z.string().url('Must be a valid URL'),
   description: z.string().max(500).optional(),
-  avatar_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
-  is_global: z.boolean().default(false),
+  avatarUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  isGlobal: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -63,8 +63,8 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
       type: 'youtube',
       url: '',
       description: '',
-      avatar_url: '',
-      is_global: false,
+      avatarUrl: '',
+      isGlobal: false,
     },
   });
 
@@ -86,7 +86,7 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
       const { source } = await response.json();
 
       toast.success(
-        values.is_global && isAdmin
+        values.isGlobal && isAdmin
           ? 'Global source added successfully'
           : 'Personal source added successfully'
       );
@@ -179,7 +179,7 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
 
             <FormField
               control={form.control}
-              name="avatar_url"
+              name="avatarUrl"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Avatar URL (Optional)</FormLabel>
@@ -215,7 +215,7 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
             {isAdmin && (
               <FormField
                 control={form.control}
-                name="is_global"
+                name="isGlobal"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">

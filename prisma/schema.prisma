@@ -20,27 +20,50 @@ model User {
   firstName String?
   lastName  String?
   imageUrl  String?
+  role      String   @default("member")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  sources   Source[]
+  follows   UserFollow[]
 
   @@index([clerkId])
   @@index([email])
+  @@index([role])
 }
 
 model Source {
-  id          String        @id @default(cuid())
-  name        String
-  type        String
-  url         String
-  description String?
-  avatarUrl   String?
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  contentItems ContentItem[]
+  id              String        @id @default(cuid())
+  name            String
+  type            String
+  url             String
+  description     String?
+  avatarUrl       String?
+  isActive        Boolean       @default(true)
+  isGlobal        Boolean       @default(false)
+  createdByUserId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  contentItems    ContentItem[]
+  createdBy       User?         @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  followers       UserFollow[]
 
   @@index([type])
   @@index([isActive])
+  @@index([isGlobal])
+  @@index([createdByUserId])
+}
+
+model UserFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  sourceId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source    Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sourceId])
+  @@index([userId])
+  @@index([sourceId])
 }
 
 model ContentItem {

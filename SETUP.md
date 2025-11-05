@@ -1,12 +1,12 @@
 # Content Hub Setup Guide
 
-This guide will help you set up and configure your Content Hub application with Clerk authentication and Supabase database.
+This guide will help you set up and configure your Content Hub application with Clerk authentication and Prisma/Supabase database.
 
 ## Prerequisites
 
 - Node.js 18+ installed
 - A Clerk account (free tier available)
-- A Supabase project (already configured)
+- A Supabase project with PostgreSQL database (already configured)
 
 ## Step 1: Clerk Authentication Setup
 
@@ -65,13 +65,30 @@ await clerkClient.users.updateUserMetadata(userId, {
 });
 ```
 
-## Step 3: Database Setup
+## Step 3: Database Setup with Prisma
 
-The database migration has already been applied to your Supabase instance. It includes:
+The application uses Prisma as the ORM to connect to your Supabase PostgreSQL database.
 
-- **sources** table: Stores YouTube channels and Substack authors
-- **content_items** table: Stores individual videos and articles
-- **user_follows** table: Tracks which sources each user follows
+### Database Schema
+
+The Prisma schema includes:
+
+- **User** table: Stores user information from Clerk with roles
+- **Source** table: Stores YouTube channels and Substack authors
+- **ContentItem** table: Stores individual videos and articles
+- **UserFollow** table: Tracks which sources each user follows
+
+### Push Database Schema
+
+Run Prisma migrations to create the database tables:
+
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Push schema to database (creates tables)
+npx prisma db push
+```
 
 ### Verify Database Tables
 
@@ -79,15 +96,19 @@ The database migration has already been applied to your Supabase instance. It in
 2. Select your project
 3. Navigate to **Table Editor**
 4. Verify these tables exist:
-   - `sources`
-   - `content_items`
-   - `user_follows`
+   - `User`
+   - `Source`
+   - `ContentItem`
+   - `UserFollow`
 
 ## Step 4: Install Dependencies and Run
 
 ```bash
 # Install dependencies
 npm install
+
+# Generate Prisma client
+npx prisma generate
 
 # Run development server
 npm run dev
@@ -145,10 +166,11 @@ If you see Clerk-related errors during build:
 
 ### Database Connection Issues
 
-If you can't connect to Supabase:
-- Check that your Supabase URL and keys are correct in `.env`
+If you can't connect to the database:
+- Check that your `DIRECT_URL` is correct in `.env`
 - Verify your Supabase project is active
-- Check Row Level Security (RLS) policies are enabled
+- Run `npx prisma db push` to ensure tables are created
+- Check Prisma client is generated with `npx prisma generate`
 
 ### Admin Access Not Working
 
@@ -163,15 +185,16 @@ If admin features aren't showing:
 
 1. User signs in via Clerk
 2. Clerk provides a user ID and metadata (including role)
-3. User ID is used as the foreign key in Supabase tables
+3. User ID is used as the foreign key in Prisma/database tables
 4. Role metadata determines access to admin features
 
-### Database Security
+### Database Architecture
 
-- **Row Level Security (RLS)** is enabled on all tables
+- **Prisma ORM** handles all database operations
 - Users can only access sources they created or global sources
-- Admin role is checked via Clerk JWT metadata
-- Follow relationships are user-specific and isolated
+- Admin role is checked via Clerk user metadata
+- Follow relationships are user-specific with unique constraints
+- Foreign key constraints ensure data integrity
 
 ## Next Steps
 
@@ -184,6 +207,7 @@ If admin features aren't showing:
 
 For issues or questions:
 - Check the [Clerk Documentation](https://clerk.com/docs)
+- Review [Prisma Documentation](https://www.prisma.io/docs)
 - Review [Supabase Documentation](https://supabase.com/docs)
 - Check [Next.js Documentation](https://nextjs.org/docs)
 

@@ -1,10 +1,10 @@
 import { getUserId, getUserRole } from '@/lib/auth';
-import { getFollowedSources } from '@/lib/follows';
+import { getFollowedSources } from '@/lib/prisma-follows';
 import { Layers, UserPlus, Shield, Library } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
-import { Source } from '@/lib/database.types';
+import { Source } from '@prisma/client';
 
 export default async function Home() {
   const userId = await getUserId();

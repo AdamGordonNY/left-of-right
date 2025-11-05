@@ -1,5 +1,5 @@
 import { getUserId, getUserRole } from '@/lib/auth';
-import { getSourcesWithFollowStatus, getFollowedSources } from '@/lib/follows';
+import { getSourcesWithFollowStatus, getFollowedSources } from '@/lib/prisma-follows';
 import { Heart, Library } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SourceCard } from '@/components/sources/source-card';
@@ -21,7 +21,7 @@ export default async function MySourcesPage() {
     getFollowedSources(userId),
   ]);
 
-  const followedSourcesWithStatus = sourcesWithStatus.filter((s) => s.is_followed);
+  const followedSourcesWithStatus = sourcesWithStatus.filter((s) => s.isFollowed);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">

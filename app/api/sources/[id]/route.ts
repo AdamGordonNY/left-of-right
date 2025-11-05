@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserId, getUserRole } from '@/lib/auth';
-import { updateSource, deleteSource, getSourceById } from '@/lib/sources';
-import { UpdateSource } from '@/lib/database.types';
+import { updateSource, deleteSource, getSourceById } from '@/lib/prisma-sources';
 
 export async function PATCH(
   request: NextRequest,
@@ -24,22 +23,28 @@ export async function PATCH(
 
     const userRole = await getUserRole();
     const canUpdate =
-      source.created_by_user_id === userId ||
-      (source.is_global && userRole === 'admin');
+      source.createdByUserId === userId ||
+      (source.isGlobal && userRole === 'admin');
 
     if (!canUpdate) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const updates: UpdateSource = {
+    const updates: {
+      name?: string;
+      description?: string;
+      avatarUrl?: string;
+      isActive?: boolean;
+      isGlobal?: boolean;
+    } = {
       name: body.name,
       description: body.description,
-      avatar_url: body.avatar_url,
-      is_active: body.is_active,
+      avatarUrl: body.avatarUrl,
+      isActive: body.isActive,
     };
 
-    if (userRole === 'admin' && body.is_global !== undefined) {
-      updates.is_global = body.is_global;
+    if (userRole === 'admin' && body.isGlobal !== undefined) {
+      updates.isGlobal = body.isGlobal;
     }
 
     const updatedSource = await updateSource(sourceId, updates);
@@ -74,8 +79,8 @@ export async function DELETE(
 
     const userRole = await getUserRole();
     const canDelete =
-      source.created_by_user_id === userId ||
-      (source.is_global && userRole === 'admin');
+      source.createdByUserId === userId ||
+      (source.isGlobal && userRole === 'admin');
 
     if (!canDelete) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
