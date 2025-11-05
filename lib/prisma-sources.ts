@@ -1,5 +1,5 @@
-import { prisma } from './prisma';
-import { Source, ContentItem } from '@prisma/client';
+import { prisma } from "./prisma";
+import { Source, ContentItem } from "@prisma/client";
 
 export type SourceWithContentItems = Source & {
   contentItems: ContentItem[];
@@ -12,7 +12,7 @@ export type ContentItemWithSource = ContentItem & {
 export async function getSources(): Promise<Source[]> {
   return prisma.source.findMany({
     where: { isActive: true },
-    orderBy: { name: 'asc' },
+    orderBy: { name: "asc" },
   });
 }
 
@@ -22,12 +22,14 @@ export async function getSourceById(id: string): Promise<Source | null> {
   });
 }
 
-export async function getSourceWithContentItems(id: string): Promise<SourceWithContentItems | null> {
+export async function getSourceWithContentItems(
+  id: string
+): Promise<SourceWithContentItems | null> {
   return prisma.source.findUnique({
     where: { id },
     include: {
       contentItems: {
-        orderBy: { publishedAt: 'desc' },
+        orderBy: { publishedAt: "desc" },
       },
     },
   });
@@ -43,6 +45,18 @@ export async function createSource(data: {
   createdByUserId?: string;
   isGlobal?: boolean;
 }): Promise<Source> {
+  // If createdByUserId is provided, verify the user exists
+  if (data.createdByUserId) {
+    const userExists = await prisma.user.findUnique({
+      where: { id: data.createdByUserId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      throw new Error(`User with id ${data.createdByUserId} does not exist`);
+    }
+  }
+
   return prisma.source.create({
     data: {
       id: generateId(),
@@ -80,24 +94,28 @@ export async function getContentItems(): Promise<ContentItemWithSource[]> {
     include: {
       source: true,
     },
-    orderBy: { publishedAt: 'desc' },
+    orderBy: { publishedAt: "desc" },
   });
 }
 
-export async function getContentItemsBySource(sourceId: string): Promise<ContentItem[]> {
+export async function getContentItemsBySource(
+  sourceId: string
+): Promise<ContentItem[]> {
   return prisma.contentItem.findMany({
     where: { sourceId },
-    orderBy: { publishedAt: 'desc' },
+    orderBy: { publishedAt: "desc" },
   });
 }
 
-export async function getContentItemsByType(type: string): Promise<ContentItemWithSource[]> {
+export async function getContentItemsByType(
+  type: string
+): Promise<ContentItemWithSource[]> {
   return prisma.contentItem.findMany({
     where: { type },
     include: {
       source: true,
     },
-    orderBy: { publishedAt: 'desc' },
+    orderBy: { publishedAt: "desc" },
   });
 }
 

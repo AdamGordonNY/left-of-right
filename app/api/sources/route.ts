@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserId, getUserRole } from '@/lib/auth';
-import { createSource } from '@/lib/prisma-sources';
+import { NextRequest, NextResponse } from "next/server";
+import { getUserRole } from "@/lib/auth";
+import { createSource } from "@/lib/prisma-sources";
+import { ensureUserExists } from "@/lib/user-sync";
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserId();
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const dbUserId = await ensureUserExists();
+    if (!dbUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -14,20 +15,20 @@ export async function POST(request: NextRequest) {
 
     if (!name || !type || !url) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, type, url' },
+        { error: "Missing required fields: name, type, url" },
         { status: 400 }
       );
     }
 
-    if (type !== 'youtube' && type !== 'substack') {
+    if (type !== "youtube" && type !== "substack") {
       return NextResponse.json(
-        { error: 'Invalid type. Must be youtube or substack' },
+        { error: "Invalid type. Must be youtube or substack" },
         { status: 400 }
       );
     }
 
     const userRole = await getUserRole();
-    const shouldBeGlobal = isGlobal && userRole === 'admin';
+    const shouldBeGlobal = isGlobal && userRole === "admin";
 
     const source = await createSource({
       name,
@@ -35,16 +36,16 @@ export async function POST(request: NextRequest) {
       url,
       description,
       avatarUrl,
-      createdByUserId: userId,
+      createdByUserId: dbUserId,
       isGlobal: shouldBeGlobal,
       isActive: true,
     });
 
     return NextResponse.json({ source }, { status: 201 });
   } catch (error) {
-    console.error('Error creating source:', error);
+    console.error("Error creating source:", error);
     return NextResponse.json(
-      { error: 'Failed to create source' },
+      { error: "Failed to create source" },
       { status: 500 }
     );
   }
