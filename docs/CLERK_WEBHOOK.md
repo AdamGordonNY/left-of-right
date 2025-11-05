@@ -79,12 +79,16 @@ model User {
 ## Troubleshooting
 
 ### Missing Headers Error
+
 If you see "Missing svix headers", ensure your webhook is properly configured in the Clerk Dashboard and the request is coming from Clerk.
 
 ### Invalid Signature Error
+
 If you see "Invalid webhook signature", verify that:
+
 - Your `CLERK_WEBHOOK_SECRET` is correct
 - The secret matches the one in your Clerk Dashboard webhook configuration
 
 ### User Not Found Error (on update/delete)
+
 This can happen if the webhook receives an update or delete event for a user that doesn't exist in your database. Ensure user.created events are processed first.

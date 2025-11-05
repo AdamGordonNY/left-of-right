@@ -3,9 +3,11 @@
 ## What Was Created
 
 ### 1. Webhook Endpoint
+
 **File:** `/app/api/webhooks/clerk/route.ts`
 
 A secure webhook endpoint that handles Clerk user lifecycle events:
+
 - ✅ `user.created` - Creates user in database
 - ✅ `user.updated` - Updates user information
 - ✅ `user.deleted` - Removes user from database
@@ -13,13 +15,16 @@ A secure webhook endpoint that handles Clerk user lifecycle events:
 **Security:** Uses Svix library to verify webhook signatures from Clerk.
 
 ### 2. User Sync Helper
+
 **File:** `/lib/user-sync.ts`
 
 Helper functions to sync users between Clerk and your database:
+
 - `ensureUserExists()` - Creates user if they don't exist, returns database ID
 - `getDbUserId(clerkId)` - Gets database ID from Clerk ID
 
 ### 3. Updated Sources API
+
 **File:** `/app/api/sources/route.ts`
 
 Now uses `ensureUserExists()` to automatically create users in the database when they create sources.
@@ -29,6 +34,7 @@ Now uses `ensureUserExists()` to automatically create users in the database when
 ### 1. Add Environment Variable
 
 Add to your `.env.local` file:
+
 ```env
 CLERK_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxx
 ```
@@ -47,6 +53,7 @@ CLERK_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxx
 ### 3. For Local Development
 
 Use ngrok or similar to expose local server:
+
 ```bash
 ngrok http 3000
 # Then use: https://abc123.ngrok.io/api/webhooks/clerk
@@ -67,6 +74,7 @@ ngrok http 3000
 ## Testing
 
 Test the webhook by:
+
 1. Creating a new user in your app
 2. Updating user profile in Clerk
 3. Deleting a user

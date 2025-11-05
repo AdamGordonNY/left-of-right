@@ -1,20 +1,20 @@
-import { headers } from 'next/headers';
-import { NextResponse } from 'next/server';
-import { Webhook } from 'svix';
-import { WebhookEvent } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+import { Webhook } from "svix";
+import { WebhookEvent } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   // Get the headers
   const headerPayload = await headers();
-  const svix_id = headerPayload.get('svix-id');
-  const svix_timestamp = headerPayload.get('svix-timestamp');
-  const svix_signature = headerPayload.get('svix-signature');
+  const svix_id = headerPayload.get("svix-id");
+  const svix_timestamp = headerPayload.get("svix-timestamp");
+  const svix_signature = headerPayload.get("svix-signature");
 
   // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return NextResponse.json(
-      { error: 'Missing svix headers' },
+      { error: "Missing svix headers" },
       { status: 400 }
     );
   }
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
   if (!WEBHOOK_SECRET) {
     throw new Error(
-      'Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local'
+      "Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local"
     );
   }
 
@@ -40,14 +40,14 @@ export async function POST(req: Request) {
   // Verify the payload with the headers
   try {
     evt = wh.verify(body, {
-      'svix-id': svix_id,
-      'svix-timestamp': svix_timestamp,
-      'svix-signature': svix_signature,
+      "svix-id": svix_id,
+      "svix-timestamp": svix_timestamp,
+      "svix-signature": svix_signature,
     }) as WebhookEvent;
   } catch (err) {
-    console.error('Error verifying webhook:', err);
+    console.error("Error verifying webhook:", err);
     return NextResponse.json(
-      { error: 'Invalid webhook signature' },
+      { error: "Invalid webhook signature" },
       { status: 400 }
     );
   }
@@ -57,13 +57,13 @@ export async function POST(req: Request) {
 
   try {
     switch (eventType) {
-      case 'user.created':
+      case "user.created":
         await handleUserCreated(evt);
         break;
-      case 'user.updated':
+      case "user.updated":
         await handleUserUpdated(evt);
         break;
-      case 'user.deleted':
+      case "user.deleted":
         await handleUserDeleted(evt);
         break;
       default:
@@ -71,20 +71,20 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { message: 'Webhook processed successfully' },
+      { message: "Webhook processed successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error processing webhook:', error);
+    console.error("Error processing webhook:", error);
     return NextResponse.json(
-      { error: 'Error processing webhook' },
+      { error: "Error processing webhook" },
       { status: 500 }
     );
   }
 }
 
 async function handleUserCreated(evt: WebhookEvent) {
-  if (evt.type !== 'user.created') return;
+  if (evt.type !== "user.created") return;
 
   const { id, email_addresses, first_name, last_name, image_url } = evt.data;
 
@@ -93,7 +93,7 @@ async function handleUserCreated(evt: WebhookEvent) {
   );
 
   if (!primaryEmail?.email_address) {
-    throw new Error('No primary email address found');
+    throw new Error("No primary email address found");
   }
 
   await prisma.user.create({
@@ -103,7 +103,7 @@ async function handleUserCreated(evt: WebhookEvent) {
       firstName: first_name || null,
       lastName: last_name || null,
       imageUrl: image_url || null,
-      role: 'member',
+      role: "member",
     },
   });
 
@@ -111,7 +111,7 @@ async function handleUserCreated(evt: WebhookEvent) {
 }
 
 async function handleUserUpdated(evt: WebhookEvent) {
-  if (evt.type !== 'user.updated') return;
+  if (evt.type !== "user.updated") return;
 
   const { id, email_addresses, first_name, last_name, image_url } = evt.data;
 
@@ -120,7 +120,7 @@ async function handleUserUpdated(evt: WebhookEvent) {
   );
 
   if (!primaryEmail?.email_address) {
-    throw new Error('No primary email address found');
+    throw new Error("No primary email address found");
   }
 
   await prisma.user.update({
@@ -137,12 +137,12 @@ async function handleUserUpdated(evt: WebhookEvent) {
 }
 
 async function handleUserDeleted(evt: WebhookEvent) {
-  if (evt.type !== 'user.deleted') return;
+  if (evt.type !== "user.deleted") return;
 
   const { id } = evt.data;
 
   if (!id) {
-    throw new Error('No user ID found');
+    throw new Error("No user ID found");
   }
 
   await prisma.user.delete({

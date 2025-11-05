@@ -1,5 +1,5 @@
-import { prisma } from './prisma';
-import { currentUser } from '@clerk/nextjs/server';
+import { prisma } from "./prisma";
+import { currentUser } from "@clerk/nextjs/server";
 
 /**
  * Ensures a user exists in the database by syncing from Clerk
@@ -8,7 +8,7 @@ import { currentUser } from '@clerk/nextjs/server';
  */
 export async function ensureUserExists(): Promise<string | null> {
   const clerkUser = await currentUser();
-  
+
   if (!clerkUser) {
     return null;
   }
@@ -18,7 +18,7 @@ export async function ensureUserExists(): Promise<string | null> {
   );
 
   if (!primaryEmail?.emailAddress) {
-    throw new Error('No primary email address found');
+    throw new Error("No primary email address found");
   }
 
   // Try to find existing user
@@ -36,7 +36,7 @@ export async function ensureUserExists(): Promise<string | null> {
         firstName: clerkUser.firstName || null,
         lastName: clerkUser.lastName || null,
         imageUrl: clerkUser.imageUrl || null,
-        role: 'member',
+        role: "member",
       },
       select: { id: true },
     });
