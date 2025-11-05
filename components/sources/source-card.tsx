@@ -1,0 +1,134 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Youtube, FileText, ExternalLink, Heart, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SourceWithFollowStatus } from '@/lib/database.types';
+import { toast } from 'sonner';
+
+interface SourceCardProps {
+  source: SourceWithFollowStatus;
+  showFollowButton?: boolean;
+}
+
+export function SourceCard({ source, showFollowButton = true }: SourceCardProps) {
+  const [isFollowing, setIsFollowing] = useState(source.is_followed);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleFollowToggle = async () => {
+    setIsLoading(true);
+
+    try {
+      if (isFollowing) {
+        const response = await fetch(`/api/follows?source_id=${source.id}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to unfollow');
+        }
+
+        setIsFollowing(false);
+        toast.success('Unfollowed successfully');
+      } else {
+        const response = await fetch('/api/follows', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source_id: source.id }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to follow');
+        }
+
+        setIsFollowing(true);
+        toast.success('Following successfully');
+      }
+
+      router.refresh();
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const TypeIcon = source.type === 'youtube' ? Youtube : FileText;
+  const initials = source.name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={source.avatar_url || undefined} alt={source.name} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <div>
+              <CardTitle className="text-lg">{source.name}</CardTitle>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="outline" className="text-xs">
+                  <TypeIcon className="mr-1 h-3 w-3" />
+                  {source.type}
+                </Badge>
+                {source.is_global && (
+                  <Badge variant="secondary" className="text-xs">
+                    Global
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+          {showFollowButton && (
+            <Button
+              size="sm"
+              variant={isFollowing ? 'outline' : 'default'}
+              onClick={handleFollowToggle}
+              disabled={isLoading}
+            >
+              <Heart
+                className={`mr-1 h-4 w-4 ${isFollowing ? 'fill-current' : ''}`}
+              />
+              {isFollowing ? 'Following' : 'Follow'}
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      {(source.description || source.follower_count !== undefined) && (
+        <CardContent>
+          {source.description && (
+            <CardDescription className="mb-3">{source.description}</CardDescription>
+          )}
+          <div className="flex items-center justify-between">
+            {source.follower_count !== undefined && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Users className="mr-1 h-4 w-4" />
+                {source.follower_count} {source.follower_count === 1 ? 'follower' : 'followers'}
+              </div>
+            )}
+            <a
+              href={source.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Visit Source
+              <ExternalLink className="ml-1 h-3 w-3" />
+            </a>
+          </div>
+        </CardContent>
+      )}
+    </Card>
+  );
+}
