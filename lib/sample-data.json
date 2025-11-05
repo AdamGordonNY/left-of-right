@@ -1,0 +1,122 @@
+[
+  {
+    "id": "v1",
+    "type": "video",
+    "title": "Building Modern Web Applications with Next.js 15",
+    "creator": "Tech Insights",
+    "thumbnail": "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "videoUrl": "https://youtube.com/watch?v=example1",
+    "publishedAt": "2024-11-01",
+    "description": "Learn how to build production-ready applications with Next.js 15 and the new app router."
+  },
+  {
+    "id": "a1",
+    "type": "article",
+    "title": "The Future of Web Development: Trends to Watch",
+    "creator": "Dev Weekly",
+    "excerpt": "Exploring the emerging trends in web development, from AI integration to edge computing. Discover what's shaping the future of how we build for the web.",
+    "articleUrl": "https://example.com/article1",
+    "publishedAt": "2024-10-30",
+    "coverImage": "https://images.pexels.com/photos/270348/pexels-photo-270348.jpeg?auto=compress&cs=tinysrgb&w=800"
+  },
+  {
+    "id": "v2",
+    "type": "video",
+    "title": "Mastering TypeScript: Advanced Patterns",
+    "creator": "Code Masters",
+    "thumbnail": "https://images.pexels.com/photos/879109/pexels-photo-879109.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "videoUrl": "https://youtube.com/watch?v=example2",
+    "publishedAt": "2024-10-28",
+    "description": "Deep dive into advanced TypeScript patterns and best practices for large-scale applications."
+  },
+  {
+    "id": "a2",
+    "type": "article",
+    "title": "Why React Server Components Change Everything",
+    "creator": "Tech Insights",
+    "excerpt": "React Server Components represent a paradigm shift in how we think about building React applications. Here's what you need to know.",
+    "articleUrl": "https://example.com/article2",
+    "publishedAt": "2024-10-25",
+    "coverImage": "https://images.pexels.com/photos/1181244/pexels-photo-1181244.jpeg?auto=compress&cs=tinysrgb&w=800"
+  },
+  {
+    "id": "v3",
+    "type": "video",
+    "title": "CSS Grid vs Flexbox: When to Use Each",
+    "creator": "Design Code",
+    "thumbnail": "https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "videoUrl": "https://youtube.com/watch?v=example3",
+    "publishedAt": "2024-10-22",
+    "description": "A comprehensive guide to understanding when to use CSS Grid and when Flexbox is the better choice."
+  },
+  {
+    "id": "a3",
+    "type": "article",
+    "title": "Building Accessible Web Applications",
+    "creator": "Code Masters",
+    "excerpt": "Accessibility isn't optional—it's essential. Learn the key principles and practical techniques for making your web apps accessible to everyone.",
+    "articleUrl": "https://example.com/article3",
+    "publishedAt": "2024-10-20",
+    "coverImage": "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=800"
+  },
+  {
+    "id": "v4",
+    "type": "video",
+    "title": "Database Design Fundamentals",
+    "creator": "Dev Weekly",
+    "thumbnail": "https://images.pexels.com/photos/1089438/pexels-photo-1089438.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "videoUrl": "https://youtube.com/watch?v=example4",
+    "publishedAt": "2024-10-18",
+    "description": "Master the fundamentals of database design with practical examples and real-world applications."
+  },
+  {
+    "id": "a4",
+    "type": "article",
+    "title": "The Art of Code Reviews",
+    "creator": "Design Code",
+    "excerpt": "Code reviews are more than just finding bugs. Discover how to conduct reviews that improve code quality and team collaboration.",
+    "articleUrl": "https://example.com/article4",
+    "publishedAt": "2024-10-15",
+    "coverImage": "https://images.pexels.com/photos/3184287/pexels-photo-3184287.jpeg?auto=compress&cs=tinysrgb&w=800"
+  },
+  {
+    "id": "v5",
+    "type": "video",
+    "title": "Performance Optimization Strategies",
+    "creator": "Tech Insights",
+    "thumbnail": "https://images.pexels.com/photos/577585/pexels-photo-577585.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "videoUrl": "https://youtube.com/watch?v=example5",
+    "publishedAt": "2024-10-12",
+    "description": "Learn proven strategies to optimize your web application's performance and deliver lightning-fast experiences."
+  },
+  {
+    "id": "a5",
+    "type": "article",
+    "title": "Microservices Architecture: A Practical Guide",
+    "creator": "Dev Weekly",
+    "excerpt": "Transitioning to microservices? This practical guide covers architecture patterns, common pitfalls, and best practices.",
+    "articleUrl": "https://example.com/article5",
+    "publishedAt": "2024-10-10",
+    "coverImage": "https://images.pexels.com/photos/1181376/pexels-photo-1181376.jpeg?auto=compress&cs=tinysrgb&w=800"
+  },
+  {
+    "id": "v6",
+    "type": "video",
+    "title": "Authentication Best Practices",
+    "creator": "Code Masters",
+    "thumbnail": "https://images.pexels.com/photos/60504/security-protection-anti-virus-software-60504.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "videoUrl": "https://youtube.com/watch?v=example6",
+    "publishedAt": "2024-10-08",
+    "description": "Implement secure authentication in your applications following industry best practices and security standards."
+  },
+  {
+    "id": "a6",
+    "type": "article",
+    "title": "Modern CI/CD Pipelines",
+    "creator": "Tech Insights",
+    "excerpt": "Streamline your development workflow with modern CI/CD practices. From automated testing to deployment strategies.",
+    "articleUrl": "https://example.com/article6",
+    "publishedAt": "2024-10-05",
+    "coverImage": "https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=800"
+  }
+]
