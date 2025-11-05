@@ -12,10 +12,13 @@ async function setupDatabase() {
     await client.connect();
     console.log('Connected to database');
 
-    const sql = fs.readFileSync(path.join(__dirname, 'create-user-table.sql'), 'utf8');
-
-    await client.query(sql);
+    const userSql = fs.readFileSync(path.join(__dirname, 'create-user-table.sql'), 'utf8');
+    await client.query(userSql);
     console.log('User table created successfully');
+
+    const sourceSql = fs.readFileSync(path.join(__dirname, 'create-source-tables.sql'), 'utf8');
+    await client.query(sourceSql);
+    console.log('Source and ContentItem tables created successfully');
 
   } catch (error) {
     console.error('Error setting up database:', error);

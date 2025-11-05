@@ -26,3 +26,37 @@ model User {
   @@index([clerkId])
   @@index([email])
 }
+
+model Source {
+  id          String        @id @default(cuid())
+  name        String
+  type        String
+  url         String
+  description String?
+  avatarUrl   String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  contentItems ContentItem[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model ContentItem {
+  id           String    @id @default(cuid())
+  sourceId     String
+  type         String
+  title        String
+  url          String
+  thumbnailUrl String?
+  description  String?
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  source       Source    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId])
+  @@index([type])
+  @@index([publishedAt])
+}
