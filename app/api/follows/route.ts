@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserId } from '@/lib/auth';
 import { followSource, unfollowSource, getUserFollows } from '@/lib/prisma-follows';
+import { ensureUserExists } from '@/lib/user-sync';
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserId();
-    if (!userId) {
+    const dbUserId = await ensureUserExists();
+    if (!dbUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const follows = await getUserFollows(userId);
+    const follows = await getUserFollows(dbUserId);
 
     return NextResponse.json({ follows });
   } catch (error) {
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserId();
-    if (!userId) {
+    const dbUserId = await ensureUserExists();
+    if (!dbUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const follow = await followSource(userId, sourceId);
+    const follow = await followSource(dbUserId, sourceId);
 
     return NextResponse.json({ follow }, { status: 201 });
   } catch (error: any) {
@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const userId = await getUserId();
-    if (!userId) {
+    const dbUserId = await ensureUserExists();
+    if (!dbUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -75,7 +75,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await unfollowSource(userId, sourceId);
+    await unfollowSource(dbUserId, sourceId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
