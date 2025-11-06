@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Error following source:", error);
 
-    if (error.code === "23505") {
+    // P2002 is Prisma's unique constraint violation error
+    if (error.code === "P2002") {
       return NextResponse.json(
         { error: "Already following this source" },
         { status: 409 }
