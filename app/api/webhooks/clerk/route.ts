@@ -8,15 +8,23 @@ import {
   deleteUserFromWebhook,
 } from "@/actions/user.actions";
 
+// This is required for webhooks to work properly in Next.js 15
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
+  console.log("Webhook received");
+  
   // Get the headers
   const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
 
+  console.log("Headers:", { svix_id, svix_timestamp, svix_signature: svix_signature ? "present" : "missing" });
+
   // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
+    console.error("Missing svix headers");
     return NextResponse.json(
       { error: "Missing svix headers" },
       { status: 400 }
