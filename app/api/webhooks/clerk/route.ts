@@ -13,14 +13,18 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   console.log("Webhook received");
-  
+
   // Get the headers
   const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
 
-  console.log("Headers:", { svix_id, svix_timestamp, svix_signature: svix_signature ? "present" : "missing" });
+  console.log("Headers:", {
+    svix_id,
+    svix_timestamp,
+    svix_signature: svix_signature ? "present" : "missing",
+  });
 
   // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
