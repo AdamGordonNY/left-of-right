@@ -37,6 +37,20 @@ export async function followSource(
   userId: string,
   sourceId: string
 ): Promise<UserFollow> {
+  // Check if already following
+  const existing = await prisma.userFollow.findUnique({
+    where: {
+      userId_sourceId: {
+        userId,
+        sourceId,
+      },
+    },
+  });
+
+  if (existing) {
+    return existing; // Return existing follow instead of throwing error
+  }
+
   return prisma.userFollow.create({
     data: {
       userId,

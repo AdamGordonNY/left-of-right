@@ -1,27 +1,33 @@
-import { getUserId, getUserRole } from '@/lib/auth';
-import { getSourcesWithFollowStatus, getFollowedSources } from '@/lib/prisma-follows';
-import { Heart, Library } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SourceCard } from '@/components/sources/source-card';
-import { AddSourceDialog } from '@/components/sources/add-source-dialog';
-import { redirect } from 'next/navigation';
+import { getUserRole } from "@/lib/auth";
+import {
+  getSourcesWithFollowStatus,
+  getFollowedSources,
+} from "@/lib/prisma-follows";
+import { Heart, Library } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SourceCard } from "@/components/sources/source-card";
+import { AddSourceDialog } from "@/components/sources/add-source-dialog";
+import { redirect } from "next/navigation";
+import { ensureUserExists } from "@/lib/user-sync";
 
 export default async function MySourcesPage() {
-  const userId = await getUserId();
+  const dbUserId = await ensureUserExists();
 
-  if (!userId) {
-    redirect('/sign-in');
+  if (!dbUserId) {
+    redirect("/sign-in");
   }
 
   const role = await getUserRole();
-  const isAdmin = role === 'admin';
+  const isAdmin = role === "admin";
 
   const [sourcesWithStatus, followedSources] = await Promise.all([
-    getSourcesWithFollowStatus(userId),
-    getFollowedSources(userId),
+    getSourcesWithFollowStatus(dbUserId),
+    getFollowedSources(dbUserId),
   ]);
 
-  const followedSourcesWithStatus = sourcesWithStatus.filter((s) => s.isFollowed);
+  const followedSourcesWithStatus = sourcesWithStatus.filter(
+    (s) => s.isFollowed
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -69,15 +75,17 @@ export default async function MySourcesPage() {
                   No sources followed yet
                 </h3>
                 <p className="mt-2 text-sm text-slate-600 max-w-md">
-                  Start following YouTube channels and Substack authors to build your
-                  personalized content feed
+                  Start following YouTube channels and Substack authors to build
+                  your personalized content feed
                 </p>
               </div>
             ) : (
               <>
                 <p className="text-sm text-slate-600">
-                  You are following {followedSourcesWithStatus.length}{' '}
-                  {followedSourcesWithStatus.length === 1 ? 'source' : 'sources'}
+                  You are following {followedSourcesWithStatus.length}{" "}
+                  {followedSourcesWithStatus.length === 1
+                    ? "source"
+                    : "sources"}
                 </p>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {followedSourcesWithStatus.map((source) => (
@@ -91,8 +99,8 @@ export default async function MySourcesPage() {
           <TabsContent value="discover" className="space-y-6">
             <div className="rounded-lg border bg-blue-50 p-4">
               <p className="text-sm text-blue-900">
-                Discover new sources to follow. Global sources are curated by admins,
-                while you can also add your own personal sources.
+                Discover new sources to follow. Global sources are curated by
+                admins, while you can also add your own personal sources.
               </p>
             </div>
 
@@ -111,8 +119,8 @@ export default async function MySourcesPage() {
             ) : (
               <>
                 <p className="text-sm text-slate-600">
-                  Showing {sourcesWithStatus.length} available{' '}
-                  {sourcesWithStatus.length === 1 ? 'source' : 'sources'}
+                  Showing {sourcesWithStatus.length} available{" "}
+                  {sourcesWithStatus.length === 1 ? "source" : "sources"}
                 </p>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {sourcesWithStatus.map((source) => (
