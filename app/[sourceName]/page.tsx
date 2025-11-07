@@ -1,18 +1,30 @@
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { Youtube, FileText, ExternalLink, ArrowRight, Users, Video, List } from 'lucide-react';
-import { getSourceBySlug, generateSlug } from '@/lib/slug-utils';
-import { getContentItemsBySource, getPlaylistsBySource, getPlaylistCount } from '@/lib/prisma-sources';
-import { getFollowerCount } from '@/lib/prisma-follows';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FollowButton } from '@/components/sources/follow-button';
-import { SyncYouTubeButton } from '@/components/sources/sync-youtube-button';
-import { ContentItemCard } from '@/components/content/content-item-card';
-import { PlaylistCard } from '@/components/content/playlist-card';
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import {
+  Youtube,
+  FileText,
+  ExternalLink,
+  ArrowRight,
+  Users,
+  Video,
+  List,
+} from "lucide-react";
+import { getSourceBySlug, generateSlug } from "@/lib/slug-utils";
+import {
+  getContentItemsBySource,
+  getPlaylistsBySource,
+  getPlaylistCount,
+} from "@/lib/prisma-sources";
+import { getFollowerCount } from "@/lib/prisma-follows";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FollowButton } from "@/components/sources/follow-button";
+import { SyncYouTubeButton } from "@/components/sources/sync-youtube-button";
+import { ContentItemCard } from "@/components/content/content-item-card";
+import { PlaylistCard } from "@/components/content/playlist-card";
 
 interface ChannelPageProps {
   params: Promise<{
@@ -28,24 +40,25 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
     notFound();
   }
 
-  const isYoutube = source.type === 'youtube';
+  const isYoutube = source.type === "youtube";
 
-  const [contentItems, playlists, followerCount, playlistCount] = await Promise.all([
-    getContentItemsBySource(source.id),
-    isYoutube ? getPlaylistsBySource(source.id) : Promise.resolve([]),
-    getFollowerCount(source.id),
-    isYoutube ? getPlaylistCount(source.id) : Promise.resolve(0),
-  ]);
+  const [contentItems, playlists, followerCount, playlistCount] =
+    await Promise.all([
+      getContentItemsBySource(source.id),
+      isYoutube ? getPlaylistsBySource(source.id) : Promise.resolve([]),
+      getFollowerCount(source.id),
+      isYoutube ? getPlaylistCount(source.id) : Promise.resolve(0),
+    ]);
 
   const recentItems = contentItems.slice(0, 12);
   const recentPlaylists = playlists.slice(0, 12);
   const slug = generateSlug(source.name);
 
-  const TypeIcon = source.type === 'youtube' ? Youtube : FileText;
+  const TypeIcon = source.type === "youtube" ? Youtube : FileText;
   const initials = source.name
-    .split(' ')
+    .split(" ")
     .map((n) => n[0])
-    .join('')
+    .join("")
     .toUpperCase()
     .slice(0, 2);
 
@@ -55,7 +68,10 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
         <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-start gap-6">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={source.avatarUrl || undefined} alt={source.name} />
+              <AvatarImage
+                src={source.avatarUrl || undefined}
+                alt={source.name}
+              />
               <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
             </Avatar>
 
@@ -75,30 +91,35 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
                     )}
                     <div className="flex items-center text-sm text-slate-600">
                       <Users className="mr-1 h-4 w-4" />
-                      {followerCount} {followerCount === 1 ? 'follower' : 'followers'}
+                      {followerCount}{" "}
+                      {followerCount === 1 ? "follower" : "followers"}
                     </div>
                     <div className="flex items-center text-sm text-slate-600">
                       <Video className="mr-1 h-4 w-4" />
-                      {contentItems.length} {contentItems.length === 1 ? 'video' : 'videos'}
+                      {contentItems.length}{" "}
+                      {contentItems.length === 1 ? "video" : "videos"}
                     </div>
                     {isYoutube && playlistCount > 0 && (
                       <div className="flex items-center text-sm text-slate-600">
                         <List className="mr-1 h-4 w-4" />
-                        {playlistCount} {playlistCount === 1 ? 'playlist' : 'playlists'}
+                        {playlistCount}{" "}
+                        {playlistCount === 1 ? "playlist" : "playlists"}
                       </div>
                     )}
                   </div>
                   {source.description && (
-                    <p className="text-slate-600 max-w-2xl">{source.description}</p>
+                    <p className="text-slate-600 max-w-2xl">
+                      {source.description}
+                    </p>
                   )}
                 </div>
 
                 <div className="flex gap-2">
                   <FollowButton sourceId={source.id} />
                   {isYoutube && (
-                    <SyncYouTubeButton 
-                      sourceId={source.id} 
-                      sourceName={source.name} 
+                    <SyncYouTubeButton
+                      sourceId={source.id}
+                      sourceName={source.name}
                     />
                   )}
                   <a
@@ -126,7 +147,10 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
                 <Video className="h-4 w-4" />
                 Videos
               </TabsTrigger>
-              <TabsTrigger value="playlists" className="flex items-center gap-2">
+              <TabsTrigger
+                value="playlists"
+                className="flex items-center gap-2"
+              >
                 <List className="h-4 w-4" />
                 Playlists
               </TabsTrigger>
@@ -134,7 +158,9 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
 
             <TabsContent value="videos">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-slate-900">Recent Videos</h2>
+                <h2 className="text-2xl font-bold text-slate-900">
+                  Recent Videos
+                </h2>
                 {contentItems.length > 12 && (
                   <Link href={`/${slug}/content?tab=videos`}>
                     <Button variant="outline">
@@ -149,11 +175,13 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
                     <Video className="h-12 w-12 text-slate-400 mb-4" />
-                    <p className="text-slate-600 mb-4">No videos available yet</p>
+                    <p className="text-slate-600 mb-4">
+                      No videos available yet
+                    </p>
                     {isYoutube && (
-                      <SyncYouTubeButton 
-                        sourceId={source.id} 
-                        sourceName={source.name} 
+                      <SyncYouTubeButton
+                        sourceId={source.id}
+                        sourceName={source.name}
                       />
                     )}
                   </CardContent>
@@ -231,7 +259,9 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
         ) : (
           <>
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-slate-900">Recent Videos</h2>
+              <h2 className="text-2xl font-bold text-slate-900">
+                Recent Videos
+              </h2>
               {contentItems.length > 12 && (
                 <Link href={`/${slug}/content`}>
                   <Button variant="outline">
@@ -246,11 +276,13 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Video className="h-12 w-12 text-slate-400 mb-4" />
-                  <p className="text-slate-600 mb-4">No content available yet</p>
+                  <p className="text-slate-600 mb-4">
+                    No content available yet
+                  </p>
                   {isYoutube && (
-                    <SyncYouTubeButton 
-                      sourceId={source.id} 
-                      sourceName={source.name} 
+                    <SyncYouTubeButton
+                      sourceId={source.id}
+                      sourceName={source.name}
                     />
                   )}
                 </CardContent>

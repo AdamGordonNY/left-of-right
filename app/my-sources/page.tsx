@@ -66,7 +66,7 @@ export default async function MySourcesPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {followedSourcesWithStatus.some(s => s.type === 'youtube') && (
+              {followedSourcesWithStatus.some((s) => s.type === "youtube") && (
                 <SyncYouTubeButton />
               )}
               <AddSourceDialog isAdmin={isAdmin} />
