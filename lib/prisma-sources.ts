@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { Source, ContentItem } from "@prisma/client";
+import { Source, ContentItem, Playlist, PlaylistItem } from "@prisma/client";
 
 export type SourceWithContentItems = Source & {
   contentItems: ContentItem[];
@@ -7,6 +7,16 @@ export type SourceWithContentItems = Source & {
 
 export type ContentItemWithSource = ContentItem & {
   source: Source;
+};
+
+export type PlaylistWithSource = Playlist & {
+  source: Source;
+};
+
+export type PlaylistWithItems = Playlist & {
+  playlistItems: (PlaylistItem & {
+    contentItem: ContentItem;
+  })[];
 };
 
 export async function getSources(): Promise<Source[]> {
@@ -156,6 +166,102 @@ export async function updateContentItem(
 
 export async function deleteContentItem(id: string): Promise<ContentItem> {
   return prisma.contentItem.delete({
+    where: { id },
+  });
+}
+
+export async function getPlaylistsBySource(
+  sourceId: string
+): Promise<Playlist[]> {
+  return prisma.playlist.findMany({
+    where: { sourceId },
+    orderBy: { publishedAt: "desc" },
+  });
+}
+
+export async function getPlaylistById(id: string): Promise<Playlist | null> {
+  return prisma.playlist.findUnique({
+    where: { id },
+  });
+}
+
+export async function getPlaylistWithItems(
+  id: string
+): Promise<PlaylistWithItems | null> {
+  return prisma.playlist.findUnique({
+    where: { id },
+    include: {
+      playlistItems: {
+        include: {
+          contentItem: true,
+        },
+        orderBy: { position: "asc" },
+      },
+    },
+  });
+}
+
+export async function getPlaylistCount(sourceId: string): Promise<number> {
+  return prisma.playlist.count({
+    where: { sourceId },
+  });
+}
+
+export async function createPlaylist(data: {
+  sourceId: string;
+  title: string;
+  playlistUrl: string;
+  description?: string;
+  thumbnailUrl?: string;
+  videoCount?: number;
+  publishedAt?: Date;
+}): Promise<Playlist> {
+  return prisma.playlist.create({
+    data: {
+      id: generateId(),
+      ...data,
+    },
+  });
+}
+
+export async function updatePlaylist(
+  id: string,
+  data: {
+    title?: string;
+    description?: string;
+    thumbnailUrl?: string;
+    playlistUrl?: string;
+    videoCount?: number;
+    publishedAt?: Date;
+  }
+): Promise<Playlist> {
+  return prisma.playlist.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deletePlaylist(id: string): Promise<Playlist> {
+  return prisma.playlist.delete({
+    where: { id },
+  });
+}
+
+export async function createPlaylistItem(data: {
+  playlistId: string;
+  contentItemId: string;
+  position: number;
+}): Promise<PlaylistItem> {
+  return prisma.playlistItem.create({
+    data: {
+      id: generateId(),
+      ...data,
+    },
+  });
+}
+
+export async function deletePlaylistItem(id: string): Promise<PlaylistItem> {
+  return prisma.playlistItem.delete({
     where: { id },
   });
 }

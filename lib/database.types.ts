@@ -97,3 +97,59 @@ export interface UpdateContentItem {
   description?: string;
   published_at?: string;
 }
+
+export interface Playlist {
+  id: string;
+  source_id: string;
+  title: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  playlist_url: string;
+  video_count: number;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlaylistItem {
+  id: string;
+  playlist_id: string;
+  content_item_id: string;
+  position: number;
+  created_at: string;
+}
+
+export interface PlaylistWithSource extends Playlist {
+  source: Source;
+}
+
+export interface PlaylistWithItems extends Playlist {
+  playlist_items: (PlaylistItem & {
+    content_item: ContentItem;
+  })[];
+}
+
+export interface InsertPlaylist {
+  source_id: string;
+  title: string;
+  playlist_url: string;
+  description?: string;
+  thumbnail_url?: string;
+  video_count?: number;
+  published_at?: string;
+}
+
+export interface UpdatePlaylist {
+  title?: string;
+  description?: string;
+  thumbnail_url?: string;
+  playlist_url?: string;
+  video_count?: number;
+  published_at?: string;
+}
+
+export interface InsertPlaylistItem {
+  playlist_id: string;
+  content_item_id: string;
+  position: number;
+}
