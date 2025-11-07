@@ -7,6 +7,7 @@ import { Heart, Library } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SourceCard } from "@/components/sources/source-card";
 import { AddSourceDialog } from "@/components/sources/add-source-dialog";
+import { SyncYouTubeButton } from "@/components/sources/sync-youtube-button";
 import { redirect } from "next/navigation";
 import { ensureUserExists } from "@/lib/user-sync";
 
@@ -64,7 +65,12 @@ export default async function MySourcesPage() {
                 </p>
               </div>
             </div>
-            <AddSourceDialog isAdmin={isAdmin} />
+            <div className="flex items-center gap-2">
+              {followedSourcesWithStatus.some(s => s.type === 'youtube') && (
+                <SyncYouTubeButton />
+              )}
+              <AddSourceDialog isAdmin={isAdmin} />
+            </div>
           </div>
         </div>
       </header>

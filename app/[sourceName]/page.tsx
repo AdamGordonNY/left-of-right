@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FollowButton } from '@/components/sources/follow-button';
+import { SyncYouTubeButton } from '@/components/sources/sync-youtube-button';
 import { ContentItemCard } from '@/components/content/content-item-card';
 import { PlaylistCard } from '@/components/content/playlist-card';
 
@@ -94,6 +95,12 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
 
                 <div className="flex gap-2">
                   <FollowButton sourceId={source.id} />
+                  {isYoutube && (
+                    <SyncYouTubeButton 
+                      sourceId={source.id} 
+                      sourceName={source.name} 
+                    />
+                  )}
                   <a
                     href={source.url}
                     target="_blank"
@@ -142,7 +149,13 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
                     <Video className="h-12 w-12 text-slate-400 mb-4" />
-                    <p className="text-slate-600">No videos available yet</p>
+                    <p className="text-slate-600 mb-4">No videos available yet</p>
+                    {isYoutube && (
+                      <SyncYouTubeButton 
+                        sourceId={source.id} 
+                        sourceName={source.name} 
+                      />
+                    )}
                   </CardContent>
                 </Card>
               ) : (
@@ -233,7 +246,13 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Video className="h-12 w-12 text-slate-400 mb-4" />
-                  <p className="text-slate-600">No content available yet</p>
+                  <p className="text-slate-600 mb-4">No content available yet</p>
+                  {isYoutube && (
+                    <SyncYouTubeButton 
+                      sourceId={source.id} 
+                      sourceName={source.name} 
+                    />
+                  )}
                 </CardContent>
               </Card>
             ) : (
