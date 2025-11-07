@@ -1,0 +1,222 @@
+"use server";
+
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
+import {
+  getChannelIdFromUrl,
+  getChannelVideos,
+  getChannelInfo,
+} from "@/lib/youtube";
+import { revalidatePath } from "next/cache";
+
+export async function syncYouTubeSource(sourceId: string) {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Check if YouTube API key is configured
+    if (!process.env.YOUTUBE_API_KEY) {
+      throw new Error("YouTube API key not configured");
+    }
+
+    // Get source
+    const source = await prisma.source.findUnique({
+      where: { id: sourceId },
+    });
+
+    if (!source) {
+      throw new Error("Source not found");
+    }
+
+    if (source.type !== "youtube") {
+      throw new Error("Source is not a YouTube channel");
+    }
+
+    // Extract channel ID
+    const channelId = await getChannelIdFromUrl(source.url);
+
+    if (!channelId) {
+      throw new Error("Failed to extract channel ID from URL");
+    }
+
+    // Fetch videos
+    const videos = await getChannelVideos(channelId, 50);
+
+    let videosAdded = 0;
+    let videosUpdated = 0;
+
+    // Store videos
+    for (const video of videos) {
+      const existingVideo = await prisma.contentItem.findFirst({
+        where: {
+          sourceId: source.id,
+          url: video.url,
+        },
+      });
+
+      if (existingVideo) {
+        await prisma.contentItem.update({
+          where: { id: existingVideo.id },
+          data: {
+            title: video.title,
+            description: video.description,
+            thumbnailUrl: video.thumbnailUrl,
+            publishedAt: new Date(video.publishedAt),
+          },
+        });
+        videosUpdated++;
+      } else {
+        await prisma.contentItem.create({
+          data: {
+            sourceId: source.id,
+            type: "video",
+            title: video.title,
+            url: video.url,
+            thumbnailUrl: video.thumbnailUrl,
+            description: video.description,
+            publishedAt: new Date(video.publishedAt),
+          },
+        });
+        videosAdded++;
+      }
+    }
+
+    // Revalidate relevant paths
+    revalidatePath("/my-sources");
+    revalidatePath(`/${source.name.toLowerCase().replace(/\s+/g, "-")}`);
+
+    return {
+      success: true,
+      videosAdded,
+      videosUpdated,
+    };
+  } catch (error) {
+    console.error("Error syncing YouTube source:", error);
+    throw error;
+  }
+}
+
+export async function syncAllYouTubeSources() {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Check if YouTube API key is configured
+    if (!process.env.YOUTUBE_API_KEY) {
+      throw new Error("YouTube API key not configured");
+    }
+
+    // Get user's database ID
+    const dbUser = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!dbUser) {
+      throw new Error("User not found");
+    }
+
+    // Get all YouTube sources the user follows
+    const sources = await prisma.source.findMany({
+      where: {
+        type: "youtube",
+        isActive: true,
+        followers: {
+          some: {
+            userId: dbUser.id,
+          },
+        },
+      },
+    });
+
+    let totalVideosAdded = 0;
+    let totalVideosUpdated = 0;
+    let sourcesProcessed = 0;
+    const errors: string[] = [];
+
+    for (const source of sources) {
+      try {
+        const result = await syncYouTubeSource(source.id);
+        totalVideosAdded += result.videosAdded;
+        totalVideosUpdated += result.videosUpdated;
+        sourcesProcessed++;
+      } catch (error) {
+        console.error(`Error syncing ${source.name}:`, error);
+        errors.push(source.name);
+      }
+    }
+
+    return {
+      success: true,
+      sourcesProcessed,
+      totalVideosAdded,
+      totalVideosUpdated,
+      errors,
+    };
+  } catch (error) {
+    console.error("Error syncing all YouTube sources:", error);
+    throw error;
+  }
+}
+
+export async function updateYouTubeChannelInfo(sourceId: string) {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Get source
+    const source = await prisma.source.findUnique({
+      where: { id: sourceId },
+    });
+
+    if (!source) {
+      throw new Error("Source not found");
+    }
+
+    if (source.type !== "youtube") {
+      throw new Error("Source is not a YouTube channel");
+    }
+
+    // Extract channel ID
+    const channelId = await getChannelIdFromUrl(source.url);
+
+    if (!channelId) {
+      throw new Error("Failed to extract channel ID from URL");
+    }
+
+    // Fetch channel info
+    const channelInfo = await getChannelInfo(channelId);
+
+    if (!channelInfo) {
+      throw new Error("Failed to fetch channel information");
+    }
+
+    // Update source with latest info
+    await prisma.source.update({
+      where: { id: sourceId },
+      data: {
+        name: channelInfo.title,
+        description: channelInfo.description,
+        avatarUrl: channelInfo.thumbnailUrl,
+      },
+    });
+
+    revalidatePath("/my-sources");
+
+    return {
+      success: true,
+      channelInfo,
+    };
+  } catch (error) {
+    console.error("Error updating channel info:", error);
+    throw error;
+  }
+}
