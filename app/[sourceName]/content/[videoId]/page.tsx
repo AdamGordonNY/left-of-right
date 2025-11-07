@@ -1,13 +1,28 @@
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft, ExternalLink, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getContentItemById, getAdjacentContentItems } from '@/lib/feed-queries';
-import { generateSlug } from '@/lib/slug-utils';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { format } from 'date-fns';
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import {
+  getContentItemById,
+  getAdjacentContentItems,
+} from "@/lib/feed-queries";
+import { generateSlug } from "@/lib/slug-utils";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format } from "date-fns";
 
 interface VideoDetailPageProps {
   params: Promise<{
@@ -16,7 +31,9 @@ interface VideoDetailPageProps {
   }>;
 }
 
-export default async function VideoDetailPage({ params }: VideoDetailPageProps) {
+export default async function VideoDetailPage({
+  params,
+}: VideoDetailPageProps) {
   const { sourceName, videoId } = await params;
   const contentItem = await getContentItemById(videoId);
 
@@ -36,13 +53,34 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
     contentItem.publishedAt
   );
 
-  const isVideo = contentItem.type === 'video';
+  const isVideo = contentItem.type === "video";
   const initials = contentItem.source.name
-    .split(' ')
+    .split(" ")
     .map((n) => n[0])
-    .join('')
+    .join("")
     .toUpperCase()
     .slice(0, 2);
+
+  // Extract YouTube video ID for embedding
+  function getYouTubeVideoId(url: string): string | null {
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.hostname === "youtu.be") {
+        return urlObj.pathname.slice(1);
+      }
+      if (urlObj.hostname.includes("youtube.com")) {
+        return urlObj.searchParams.get("v");
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  const youtubeVideoId = isVideo ? getYouTubeVideoId(contentItem.url) : null;
+  const embedUrl = youtubeVideoId
+    ? `https://www.youtube.com/embed/${youtubeVideoId}?rel=0`
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -57,7 +95,20 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
 
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-              {contentItem.thumbnailUrl && (
+              {isVideo && embedUrl ? (
+                <div
+                  className="relative w-full overflow-hidden rounded-lg bg-slate-900"
+                  style={{ paddingBottom: "56.25%" }}
+                >
+                  <iframe
+                    src={embedUrl}
+                    title={contentItem.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full"
+                  />
+                </div>
+              ) : contentItem.thumbnailUrl ? (
                 <div className="relative aspect-video overflow-hidden rounded-lg bg-slate-900">
                   <img
                     src={contentItem.thumbnailUrl}
@@ -65,17 +116,19 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
                     className="h-full w-full object-cover"
                   />
                 </div>
-              )}
-
+              ) : null}{" "}
               <div>
                 <div className="flex items-start gap-3 mb-4">
-                  <Badge className={isVideo ? 'bg-red-600' : 'bg-blue-600'}>
+                  <Badge className={isVideo ? "bg-red-600" : "bg-blue-600"}>
                     {contentItem.type}
                   </Badge>
                   {contentItem.publishedAt && (
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <Calendar className="h-4 w-4" />
-                      {format(new Date(contentItem.publishedAt), 'MMMM d, yyyy')}
+                      {format(
+                        new Date(contentItem.publishedAt),
+                        "MMMM d, yyyy"
+                      )}
                     </div>
                   )}
                 </div>
@@ -100,12 +153,11 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
                   >
                     <Button size="lg" className="w-full sm:w-auto">
                       <ExternalLink className="mr-2 h-5 w-5" />
-                      {isVideo ? 'Watch on YouTube' : 'Read Article'}
+                      {isVideo ? "Watch on YouTube" : "Read Article"}
                     </Button>
                   </a>
                 </div>
               </div>
-
               <div className="flex gap-4 pt-6 border-t">
                 {next && (
                   <Link href={`/${slug}/content/${next.id}`} className="flex-1">
@@ -116,7 +168,10 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
                   </Link>
                 )}
                 {previous && (
-                  <Link href={`/${slug}/content/${previous.id}`} className="flex-1">
+                  <Link
+                    href={`/${slug}/content/${previous.id}`}
+                    className="flex-1"
+                  >
                     <Button variant="outline" className="w-full justify-end">
                       <span className="truncate">Next: {previous.title}</span>
                       <ChevronRight className="ml-2 h-4 w-4" />
@@ -132,9 +187,15 @@ export default async function VideoDetailPage({ params }: VideoDetailPageProps) 
                   <CardTitle className="text-lg">Channel</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Link href={`/${slug}`} className="flex items-start gap-3 group">
+                  <Link
+                    href={`/${slug}`}
+                    className="flex items-start gap-3 group"
+                  >
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={contentItem.source.avatarUrl || undefined} alt={contentItem.source.name} />
+                      <AvatarImage
+                        src={contentItem.source.avatarUrl || undefined}
+                        alt={contentItem.source.name}
+                      />
                       <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
