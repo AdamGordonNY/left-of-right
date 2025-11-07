@@ -25,8 +25,25 @@ export default async function MySourcesPage() {
     getFollowedSources(dbUserId),
   ]);
 
+  console.log("Debug - dbUserId:", dbUserId);
+  console.log("Debug - sourcesWithStatus count:", sourcesWithStatus.length);
+  console.log("Debug - followedSources count:", followedSources.length);
+  console.log(
+    "Debug - all sources:",
+    JSON.stringify(sourcesWithStatus, null, 2)
+  );
+
   const followedSourcesWithStatus = sourcesWithStatus.filter(
     (s) => s.isFollowed
+  );
+
+  console.log(
+    "Debug - followedSourcesWithStatus count:",
+    followedSourcesWithStatus.length
+  );
+  console.log(
+    "Debug - followedSourcesWithStatus:",
+    JSON.stringify(followedSourcesWithStatus, null, 2)
   );
 
   return (
