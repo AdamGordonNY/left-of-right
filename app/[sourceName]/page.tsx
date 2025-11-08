@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { getSourceBySlug, generateSlug } from "@/lib/slug-utils";
 import { getUserId } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   getContentItemsBySource,
   getPlaylistsBySource,
@@ -35,8 +36,19 @@ interface ChannelPageProps {
 
 export default async function ChannelPage({ params }: ChannelPageProps) {
   const { sourceName } = await params;
-  const userId = await getUserId();
-  const source = await getSourceBySlug(sourceName, userId || undefined);
+  const clerkUserId = await getUserId();
+
+  // Convert Clerk user ID to database user ID
+  let dbUserId: string | undefined = undefined;
+  if (clerkUserId) {
+    const dbUser = await prisma.user.findUnique({
+      where: { clerkId: clerkUserId },
+      select: { id: true },
+    });
+    dbUserId = dbUser?.id;
+  }
+
+  const source = await getSourceBySlug(sourceName, dbUserId);
 
   if (!source) {
     notFound();

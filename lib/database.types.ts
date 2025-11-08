@@ -1,5 +1,5 @@
-export type SourceType = 'youtube' | 'substack';
-export type ContentItemType = 'video' | 'article';
+export type SourceType = "youtube" | "substack";
+export type ContentItemType = "video" | "article";
 
 export interface Source {
   id: string;
@@ -80,7 +80,7 @@ export interface SourceWithFollowStatus extends Source {
   follower_count?: number;
 }
 
-export type UserRole = 'admin' | 'member';
+export type UserRole = "admin" | "member";
 
 export interface UserProfile {
   id: string;
@@ -152,4 +152,28 @@ export interface InsertPlaylistItem {
   playlist_id: string;
   content_item_id: string;
   position: number;
+}
+
+export interface Favorite {
+  id: string;
+  user_id: string;
+  content_item_id: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FavoriteWithContentItem extends Favorite {
+  content_item: ContentItemWithSource;
+  contentItem: ContentItemWithSource; // For Prisma camelCase
+}
+
+export interface InsertFavorite {
+  user_id: string;
+  content_item_id: string;
+  notes?: string;
+}
+
+export interface UpdateFavorite {
+  notes?: string;
 }

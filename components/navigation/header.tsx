@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { Layers, Library, Shield } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
+import { Layers, Library, Shield, Heart } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useUser,
+} from "@clerk/nextjs";
+import { useEffect, useState } from "react";
 
 export function Header() {
   const { user } = useUser();
@@ -14,13 +20,13 @@ export function Header() {
     async function checkAdminStatus() {
       if (user) {
         try {
-          const response = await fetch('/api/user/role');
+          const response = await fetch("/api/user/role");
           if (response.ok) {
             const data = await response.json();
-            setIsAdmin(data.role === 'admin');
+            setIsAdmin(data.role === "admin");
           }
         } catch (error) {
-          console.error('Failed to check admin status:', error);
+          console.error("Failed to check admin status:", error);
         }
       }
     }
@@ -31,7 +37,10 @@ export function Header() {
     <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Link
+            href="/"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
               <Layers className="h-7 w-7 text-white" />
             </div>
@@ -52,6 +61,12 @@ export function Header() {
                   My Sources
                 </Button>
               </Link>
+              <Link href="/favorites">
+                <Button variant="outline" size="sm">
+                  <Heart className="mr-2 h-4 w-4" />
+                  Favorites
+                </Button>
+              </Link>
               {isAdmin && (
                 <Link href="/admin">
                   <Button variant="outline" size="sm">
@@ -64,9 +79,7 @@ export function Header() {
             </SignedIn>
             <SignedOut>
               <SignInButton mode="modal">
-                <Button>
-                  Sign In
-                </Button>
+                <Button>Sign In</Button>
               </SignInButton>
             </SignedOut>
           </div>

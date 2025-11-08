@@ -63,7 +63,7 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
       type: "youtube",
       handle: "",
       description: "",
-      isGlobal: false,
+      isGlobal: isAdmin, // Default to true for admins
     },
   });
 

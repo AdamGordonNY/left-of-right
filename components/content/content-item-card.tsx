@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { ContentItem, Source } from "@prisma/client";
 import { format } from "date-fns";
 import { VideoPlayerDialog } from "./video-player-dialog";
+import { FavoriteButton } from "./favorite-button";
 
 interface ContentItemCardProps {
   item: ContentItem;
@@ -54,6 +55,12 @@ export function ContentItemCard({ item, source, slug }: ContentItemCardProps) {
           >
             {item.type}
           </Badge>
+          <div className="absolute right-3 top-3">
+            <FavoriteButton
+              contentItemId={item.id}
+              className="bg-white/90 hover:bg-white"
+            />
+          </div>
         </div>
       )}
       <CardHeader className="space-y-2 pb-3">

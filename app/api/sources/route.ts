@@ -30,7 +30,10 @@ export async function POST(request: NextRequest) {
     }
 
     const userRole = await getUserRole();
-    const shouldBeGlobal = isGlobal && userRole === "admin";
+    const isAdminUser = userRole === "admin";
+
+    // Admins always create global sources, unless explicitly set to false
+    const shouldBeGlobal = isAdminUser ? isGlobal !== false : false;
 
     // Auto-fetch metadata if requested or if name is not provided
     let finalName = name;
