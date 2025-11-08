@@ -22,7 +22,7 @@ export async function addToFavorites(
       return { success: false, error: "Unauthorized" };
     }
 
-    const favorite = await prisma.favorite.upsert({
+    const favorite = await (prisma as any).favorite.upsert({
       where: {
         userId_contentItemId: {
           userId: dbUserId,
@@ -70,7 +70,7 @@ export async function removeFromFavorites(
       return { success: false, error: "Unauthorized" };
     }
 
-    await prisma.favorite.deleteMany({
+    await (prisma as any).favorite.deleteMany({
       where: {
         userId: dbUserId,
         contentItemId,
@@ -107,7 +107,7 @@ export async function updateFavoriteNotes(
     }
 
     // Verify the favorite belongs to the user
-    const existing = await prisma.favorite.findFirst({
+    const existing = await (prisma as any).favorite.findFirst({
       where: {
         id: favoriteId,
         userId: dbUserId,
@@ -118,7 +118,7 @@ export async function updateFavoriteNotes(
       return { success: false, error: "Favorite not found" };
     }
 
-    const favorite = await prisma.favorite.update({
+    const favorite = await (prisma as any).favorite.update({
       where: { id: favoriteId },
       data: { notes: notes || null },
       include: {
@@ -151,7 +151,7 @@ export async function isFavorited(
       return { isFavorited: false };
     }
 
-    const favorite = await prisma.favorite.findFirst({
+    const favorite = await (prisma as any).favorite.findFirst({
       where: {
         userId: dbUserId,
         contentItemId,
@@ -183,7 +183,7 @@ export async function getUserFavorites(): Promise<{
       return { success: false, error: "Unauthorized" };
     }
 
-    const favorites = await prisma.favorite.findMany({
+    const favorites = await (prisma as any).favorite.findMany({
       where: {
         userId: dbUserId,
       },
