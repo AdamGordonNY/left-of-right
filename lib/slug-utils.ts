@@ -21,27 +21,11 @@ export async function getSourceBySlug(
       }
     : { isActive: true, isGlobal: true };
 
-  console.log(
-    "[getSourceBySlug] Looking for slug:",
-    slug,
-    "userId:",
-    userId,
-    "where:",
-    JSON.stringify(where)
-  );
-
   const sources = await prisma.source.findMany({
     where,
   });
 
-  console.log("[getSourceBySlug] Found sources:", sources.length, "sources");
-  sources.forEach((s) =>
-    console.log("  -", s.name, "=> slug:", generateSlug(s.name))
-  );
-
   const source = sources.find((s) => generateSlug(s.name) === slug);
-
-  console.log("[getSourceBySlug] Matched source:", source?.name || "null");
 
   return source || null;
 }

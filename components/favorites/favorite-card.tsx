@@ -16,7 +16,16 @@ import { VideoPlayerDialog } from "@/components/content/video-player-dialog";
 import { NotesDialog } from "./notes-dialog";
 import { removeFromFavorites } from "@/actions/favorites.actions";
 import { toast } from "sonner";
-import type { Favorite, ContentItem, Source } from "@prisma/client";
+import type { ContentItem, Source } from "@prisma/client";
+
+type Favorite = {
+  id: string;
+  userId: string;
+  contentItemId: string;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 interface FavoriteWithContent extends Favorite {
   contentItem: ContentItem & {
