@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Plus } from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -23,25 +23,24 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
-  type: z.enum(['youtube', 'substack']),
-  url: z.string().url('Must be a valid URL'),
+  name: z.string().max(100).optional(),
+  type: z.enum(["youtube", "substack"]),
+  handle: z.string().min(1, "Handle/username is required"),
   description: z.string().max(500).optional(),
-  avatarUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   isGlobal: z.boolean().default(false),
 });
 
@@ -54,48 +53,72 @@ interface AddSourceDialogProps {
 export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingInfo, setIsFetchingInfo] = useState(false);
   const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      type: 'youtube',
-      url: '',
-      description: '',
-      avatarUrl: '',
+      name: "",
+      type: "youtube",
+      handle: "",
+      description: "",
       isGlobal: false,
     },
   });
+
+  const watchedType = form.watch("type");
+  const watchedHandle = form.watch("handle");
+
+  // Build full URL from handle
+  const getFullUrl = (type: string, handle: string): string => {
+    if (!handle) return "";
+
+    const cleanHandle = handle.trim().replace(/^@/, "");
+
+    if (type === "youtube") {
+      return `https://youtube.com/@${cleanHandle}`;
+    } else {
+      // Remove .substack.com if user included it
+      const subdomain = cleanHandle.replace(/\.substack\.com$/, "");
+      return `https://${subdomain}.substack.com`;
+    }
+  };
 
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/sources', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+      const url = getFullUrl(values.type, values.handle);
+
+      const response = await fetch("/api/sources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
+          url,
+          fetchMetadata: true, // Tell the API to fetch channel info
+        }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to add source');
+        throw new Error(error.error || "Failed to add source");
       }
 
       const { source } = await response.json();
 
       toast.success(
         values.isGlobal && isAdmin
-          ? 'Global source added successfully'
-          : 'Personal source added successfully'
+          ? "Global source added successfully"
+          : "Personal source added successfully"
       );
 
       form.reset();
       setOpen(false);
       router.refresh();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to add source');
+      toast.error(error.message || "Failed to add source");
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +136,8 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
         <DialogHeader>
           <DialogTitle>Add New Source</DialogTitle>
           <DialogDescription>
-            Add a YouTube channel or Substack author to follow their content.
+            Add a YouTube channel or Substack author. We'll automatically fetch
+            the channel info and avatar.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -148,29 +172,16 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Channel or author name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL</FormLabel>
+                  <FormLabel>Display Name (Optional)</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="https://youtube.com/@channel or https://author.substack.com"
+                      placeholder="Leave empty to auto-fetch from channel"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Full URL to the YouTube channel or Substack profile
+                    We'll automatically use the channel's official name if left
+                    empty
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -179,16 +190,50 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
 
             <FormField
               control={form.control}
-              name="avatarUrl"
+              name="handle"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Avatar URL (Optional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://example.com/avatar.jpg"
-                      {...field}
-                    />
-                  </FormControl>
+                  <FormLabel>
+                    {watchedType === "youtube"
+                      ? "Channel Handle"
+                      : "Substack Username"}
+                  </FormLabel>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center flex-1">
+                      <span className="inline-flex items-center px-3 py-2 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-slate-600 text-sm">
+                        {watchedType === "youtube"
+                          ? "youtube.com/@"
+                          : ".substack.com"}
+                      </span>
+                      <FormControl>
+                        <Input
+                          placeholder={
+                            watchedType === "youtube"
+                              ? "channelname"
+                              : "username"
+                          }
+                          {...field}
+                          className="rounded-l-none"
+                          onChange={(e) => {
+                            const value = e.target.value
+                              .replace(/^@/, "")
+                              .replace(/\.substack\.com$/, "");
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                    </div>
+                  </div>
+                  <FormDescription>
+                    {watchedType === "youtube"
+                      ? 'Just the handle without @ symbol (e.g., "mkbhd")'
+                      : 'Just the username (e.g., "platformer")'}
+                  </FormDescription>
+                  {watchedHandle && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      Full URL: {getFullUrl(watchedType, watchedHandle)}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -245,7 +290,7 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Adding...' : 'Add Source'}
+                {isLoading ? "Adding..." : "Add Source"}
               </Button>
             </div>
           </form>
