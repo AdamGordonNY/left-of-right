@@ -11,6 +11,7 @@ import {
   useUser,
 } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function Header() {
   const { user } = useUser();
@@ -34,7 +35,7 @@ export function Header() {
   }, [user]);
 
   return (
-    <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <Link
@@ -45,10 +46,10 @@ export function Header() {
               <Layers className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 Content Hub
               </h1>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Algorithm-free content discovery
               </p>
             </div>
@@ -75,9 +76,11 @@ export function Header() {
                   </Button>
                 </Link>
               )}
+              <ThemeToggle />
               <UserButton afterSignOutUrl="/" />
             </SignedIn>
             <SignedOut>
+              <ThemeToggle />
               <SignInButton mode="modal">
                 <Button>Sign In</Button>
               </SignInButton>

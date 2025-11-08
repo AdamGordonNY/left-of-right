@@ -24,15 +24,15 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
       <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-3xl font-bold text-slate-900">
+              <h2 className="text-3xl font-bold text-foreground">
                 {isPersonalFeed ? 'Your Feed' : 'Discover Content'}
               </h2>
-              <p className="text-slate-600 mt-1">
+              <p className="text-muted-foreground mt-1">
                 {isPersonalFeed
                   ? 'Latest content from channels you follow'
                   : 'Explore curated channels and content'}
@@ -49,14 +49,14 @@ export default async function Home() {
           </div>
 
           {userId && !isPersonalFeed && (
-            <div className="rounded-lg border bg-blue-50 p-4 mb-6">
+            <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/30 p-4 mb-6">
               <div className="flex items-start gap-3">
-                <Heart className="h-5 w-5 text-blue-600 mt-0.5" />
+                <Heart className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-blue-900">
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                     You're not following any channels yet
                   </p>
-                  <p className="text-sm text-blue-700 mt-1">
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                     Start following channels to build your personalized feed. Browse global sources below or{' '}
                     <Link href="/my-sources" className="underline font-medium">
                       manage your sources
@@ -70,14 +70,14 @@ export default async function Home() {
         </div>
 
         {sources.length === 0 ? (
-          <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-slate-50 p-8 text-center">
-            <div className="rounded-full bg-slate-100 p-6">
+          <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-slate-50 dark:bg-slate-900/50 p-8 text-center">
+            <div className="rounded-full bg-slate-100 dark:bg-slate-800 p-6">
               <Library className="h-12 w-12 text-slate-400" />
             </div>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">
+            <h3 className="mt-4 text-lg font-semibold text-foreground">
               No content available
             </h3>
-            <p className="mt-2 text-sm text-slate-600 max-w-md">
+            <p className="mt-2 text-sm text-muted-foreground max-w-md">
               There are no active sources yet. Check back soon for new content!
             </p>
           </div>
