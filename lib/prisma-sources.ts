@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { Source, ContentItem, Playlist, PlaylistItem } from "@prisma/client";
+import { getAccessibleSourcesFilter } from "./authorization";
 
 export type SourceWithContentItems = Source & {
   contentItems: ContentItem[];
@@ -19,9 +20,16 @@ export type PlaylistWithItems = Playlist & {
   })[];
 };
 
-export async function getSources(): Promise<Source[]> {
+export async function getSources(userId?: string): Promise<Source[]> {
+  const where = userId
+    ? {
+        isActive: true,
+        ...getAccessibleSourcesFilter(userId),
+      }
+    : { isActive: true };
+
   return prisma.source.findMany({
-    where: { isActive: true },
+    where,
     orderBy: { name: "asc" },
   });
 }
@@ -99,8 +107,15 @@ export async function deleteSource(id: string): Promise<Source> {
   });
 }
 
-export async function getContentItems(): Promise<ContentItemWithSource[]> {
+export async function getContentItems(userId?: string): Promise<ContentItemWithSource[]> {
+  const where = userId
+    ? {
+        source: getAccessibleSourcesFilter(userId),
+      }
+    : {};
+
   return prisma.contentItem.findMany({
+    where,
     include: {
       source: true,
     },
@@ -118,10 +133,18 @@ export async function getContentItemsBySource(
 }
 
 export async function getContentItemsByType(
-  type: string
+  type: string,
+  userId?: string
 ): Promise<ContentItemWithSource[]> {
+  const where = userId
+    ? {
+        type,
+        source: getAccessibleSourcesFilter(userId),
+      }
+    : { type };
+
   return prisma.contentItem.findMany({
-    where: { type },
+    where,
     include: {
       source: true,
     },

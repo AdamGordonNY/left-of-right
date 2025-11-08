@@ -10,6 +10,7 @@ import {
   List,
 } from "lucide-react";
 import { getSourceBySlug, generateSlug } from "@/lib/slug-utils";
+import { getUserId } from "@/lib/auth";
 import {
   getContentItemsBySource,
   getPlaylistsBySource,
@@ -34,7 +35,8 @@ interface ChannelPageProps {
 
 export default async function ChannelPage({ params }: ChannelPageProps) {
   const { sourceName } = await params;
-  const source = await getSourceBySlug(sourceName);
+  const userId = await getUserId();
+  const source = await getSourceBySlug(sourceName, userId || undefined);
 
   if (!source) {
     notFound();

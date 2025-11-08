@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Video, List } from 'lucide-react';
 import { getSourceBySlug, generateSlug } from '@/lib/slug-utils';
+import { getUserId } from '@/lib/auth';
 import { getContentItemsBySource, getPlaylistsBySource, getPlaylistCount } from '@/lib/prisma-sources';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,7 +22,8 @@ interface AllContentPageProps {
 export default async function AllContentPage({ params, searchParams }: AllContentPageProps) {
   const { sourceName } = await params;
   const { tab } = await searchParams;
-  const source = await getSourceBySlug(sourceName);
+  const userId = await getUserId();
+  const source = await getSourceBySlug(sourceName, userId || undefined);
 
   if (!source) {
     notFound();

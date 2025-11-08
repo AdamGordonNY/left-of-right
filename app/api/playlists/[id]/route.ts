@@ -6,6 +6,13 @@ import {
   updatePlaylist,
   deletePlaylist,
 } from '@/lib/prisma-sources';
+import {
+  requireAuthUserId,
+  requirePlaylistModification,
+  ForbiddenError,
+  UnauthorizedError,
+  NotFoundError,
+} from '@/lib/authorization';
 
 interface RouteContext {
   params: Promise<{
@@ -48,13 +55,11 @@ export async function PATCH(
   context: RouteContext
 ) {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    const userId = await requireAuthUserId();
     const { id } = await context.params;
+
+    await requirePlaylistModification(userId, id);
+
     const body = await request.json();
 
     const playlist = await updatePlaylist(id, {
@@ -65,6 +70,15 @@ export async function PATCH(
     return NextResponse.json(playlist);
   } catch (error) {
     console.error('Error updating playlist:', error);
+
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+
     return NextResponse.json(
       { error: 'Failed to update playlist' },
       { status: 500 }
@@ -77,19 +91,25 @@ export async function DELETE(
   context: RouteContext
 ) {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    const userId = await requireAuthUserId();
     const { id } = await context.params;
+
+    await requirePlaylistModification(userId, id);
 
     await deletePlaylist(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting playlist:', error);
+
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+
     return NextResponse.json(
       { error: 'Failed to delete playlist' },
       { status: 500 }

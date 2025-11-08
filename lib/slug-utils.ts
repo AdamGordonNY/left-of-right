@@ -1,5 +1,6 @@
 import { Source } from '@prisma/client';
 import { prisma } from './prisma';
+import { getAccessibleSourcesFilter } from './authorization';
 
 export function generateSlug(name: string): string {
   return name
@@ -10,9 +11,16 @@ export function generateSlug(name: string): string {
     .replace(/-+/g, '-');
 }
 
-export async function getSourceBySlug(slug: string): Promise<Source | null> {
+export async function getSourceBySlug(slug: string, userId?: string): Promise<Source | null> {
+  const where = userId
+    ? {
+        isActive: true,
+        ...getAccessibleSourcesFilter(userId),
+      }
+    : { isActive: true, isGlobal: true };
+
   const sources = await prisma.source.findMany({
-    where: { isActive: true },
+    where,
   });
 
   const source = sources.find(
@@ -22,12 +30,19 @@ export async function getSourceBySlug(slug: string): Promise<Source | null> {
   return source || null;
 }
 
-export async function getSourceBySlugOrId(slugOrId: string): Promise<Source | null> {
-  const bySlug = await getSourceBySlug(slugOrId);
+export async function getSourceBySlugOrId(slugOrId: string, userId?: string): Promise<Source | null> {
+  const bySlug = await getSourceBySlug(slugOrId, userId);
   if (bySlug) return bySlug;
 
+  const where = userId
+    ? {
+        id: slugOrId,
+        ...getAccessibleSourcesFilter(userId),
+      }
+    : { id: slugOrId, isGlobal: true };
+
   const byId = await prisma.source.findUnique({
-    where: { id: slugOrId },
+    where,
   });
 
   return byId;

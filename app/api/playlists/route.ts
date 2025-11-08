@@ -4,6 +4,12 @@ import {
   getPlaylistsBySource,
   createPlaylist,
 } from '@/lib/prisma-sources';
+import {
+  requireAuthUserId,
+  requireSourceModification,
+  ForbiddenError,
+  UnauthorizedError,
+} from '@/lib/authorization';
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,11 +36,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const userId = await requireAuthUserId();
 
     const body = await request.json();
     const { sourceId, title, playlistUrl, description, thumbnailUrl, videoCount, publishedAt } = body;
@@ -45,6 +47,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    await requireSourceModification(userId, sourceId);
 
     const playlist = await createPlaylist({
       sourceId,
@@ -59,6 +63,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(playlist, { status: 201 });
   } catch (error) {
     console.error('Error creating playlist:', error);
+
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+
     return NextResponse.json(
       { error: 'Failed to create playlist' },
       { status: 500 }
