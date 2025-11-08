@@ -1,6 +1,5 @@
 import { prisma } from "./prisma";
 import { Source, ContentItem, Playlist, PlaylistItem } from "@prisma/client";
-import { getAccessibleSourcesFilter } from "./authorization";
 
 export type SourceWithContentItems = Source & {
   contentItems: ContentItem[];
@@ -24,9 +23,9 @@ export async function getSources(userId?: string): Promise<Source[]> {
   const where = userId
     ? {
         isActive: true,
-        ...getAccessibleSourcesFilter(userId),
+        OR: [{ createdByUserId: userId }, { isGlobal: true }],
       }
-    : { isActive: true };
+    : { isActive: true, isGlobal: true };
 
   return prisma.source.findMany({
     where,
@@ -107,12 +106,20 @@ export async function deleteSource(id: string): Promise<Source> {
   });
 }
 
-export async function getContentItems(userId?: string): Promise<ContentItemWithSource[]> {
+export async function getContentItems(
+  userId?: string
+): Promise<ContentItemWithSource[]> {
   const where = userId
     ? {
-        source: getAccessibleSourcesFilter(userId),
+        source: {
+          OR: [{ createdByUserId: userId }, { isGlobal: true }],
+        },
       }
-    : {};
+    : {
+        source: {
+          isGlobal: true,
+        },
+      };
 
   return prisma.contentItem.findMany({
     where,
@@ -139,9 +146,16 @@ export async function getContentItemsByType(
   const where = userId
     ? {
         type,
-        source: getAccessibleSourcesFilter(userId),
+        source: {
+          OR: [{ createdByUserId: userId }, { isGlobal: true }],
+        },
       }
-    : { type };
+    : {
+        type,
+        source: {
+          isGlobal: true,
+        },
+      };
 
   return prisma.contentItem.findMany({
     where,
