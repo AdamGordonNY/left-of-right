@@ -5,7 +5,16 @@ import { getUserFavorites } from "@/actions/favorites.actions";
 import { FavoriteCard } from "./favorite-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Heart } from "lucide-react";
-import type { Favorite, ContentItem, Source } from "@prisma/client";
+import type { ContentItem, Source } from "@prisma/client";
+
+type Favorite = {
+  id: string;
+  userId: string;
+  contentItemId: string;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 type FavoriteWithContent = Favorite & {
   contentItem: ContentItem & {
