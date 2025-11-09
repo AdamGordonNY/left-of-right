@@ -11,6 +11,9 @@ import { QuotaExhaustedError } from "@/lib/youtube-client";
 import { revalidatePath } from "next/cache";
 
 export async function syncYouTubeSource(sourceId: string) {
+  let videosAdded = 0;
+  let videosUpdated = 0;
+
   try {
     const { userId } = await auth();
 
@@ -46,7 +49,7 @@ export async function syncYouTubeSource(sourceId: string) {
     // Fetch videos
     const videos = await getChannelVideos(channelId, 50);
 
-    let videosAdded = 0;
+    // Store videos
     let videosUpdated = 0;
 
     // Store videos
