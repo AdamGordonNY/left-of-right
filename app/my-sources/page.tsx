@@ -3,7 +3,7 @@ import {
   getSourcesWithFollowStatus,
   getFollowedSources,
 } from "@/lib/prisma-follows";
-import { Heart, Library } from "lucide-react";
+import { Heart, Library, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SourceCard } from "@/components/sources/source-card";
 import { AddSourceDialog } from "@/components/sources/add-source-dialog";
@@ -86,6 +86,10 @@ export default async function MySourcesPage() {
               <Library className="h-4 w-4" />
               Discover Sources
             </TabsTrigger>
+            <TabsTrigger value="manage" className="gap-2">
+              <Settings className="h-4 w-4" />
+              Manage My Sources
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="followed" className="space-y-6">
@@ -149,6 +153,48 @@ export default async function MySourcesPage() {
                   {sourcesWithStatus.map((source) => (
                     <SourceCard key={source.id} source={source} />
                   ))}
+                </div>
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="manage" className="space-y-6">
+            <div className="rounded-lg border bg-orange-50 dark:bg-orange-950/30 p-4">
+              <p className="text-sm text-orange-900 dark:text-orange-100">
+                Manage your personal sources. You can edit or delete any source you've created.
+              </p>
+            </div>
+
+            {sourcesWithStatus.filter((s) => s.createdByUserId === dbUserId).length === 0 ? (
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 p-8 text-center">
+                <div className="rounded-full bg-muted p-6">
+                  <Settings className="h-12 w-12 text-muted-foreground" />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-foreground">
+                  No personal sources yet
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Add a personal source to get started
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  You have {sourcesWithStatus.filter((s) => s.createdByUserId === dbUserId).length}{" "}
+                  personal {sourcesWithStatus.filter((s) => s.createdByUserId === dbUserId).length === 1 ? "source" : "sources"}
+                </p>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {sourcesWithStatus
+                    .filter((s) => s.createdByUserId === dbUserId)
+                    .map((source) => (
+                      <SourceCard
+                        key={source.id}
+                        source={source}
+                        showFollowButton={false}
+                        currentUserId={dbUserId}
+                        isAdmin={isAdmin}
+                      />
+                    ))}
                 </div>
               </>
             )}

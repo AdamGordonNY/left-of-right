@@ -32,12 +32,14 @@ export async function PATCH(
 
     const updates: {
       name?: string;
+      url?: string;
       description?: string;
       avatarUrl?: string;
       isActive?: boolean;
       isGlobal?: boolean;
     } = {
       name: body.name,
+      url: body.url,
       description: body.description,
       avatarUrl: body.avatarUrl,
       isActive: body.isActive,

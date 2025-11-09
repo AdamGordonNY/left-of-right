@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Youtube, FileText, ExternalLink, Heart, Users } from "lucide-react";
+import { Youtube, FileText, ExternalLink, Heart, Users, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,21 +13,36 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { SourceWithFollowStatus } from "@/lib/prisma-follows";
+import { EditSourceDialog } from "@/components/sources/edit-source-dialog";
+import { DeleteSourceDialog } from "@/components/sources/delete-source-dialog";
 import { toast } from "sonner";
 
 interface SourceCardProps {
   source: SourceWithFollowStatus;
   showFollowButton?: boolean;
+  currentUserId?: string | null;
+  isAdmin?: boolean;
 }
 
 export function SourceCard({
   source,
   showFollowButton = true,
+  currentUserId = null,
+  isAdmin = false,
 }: SourceCardProps) {
   const [isFollowing, setIsFollowing] = useState(source.isFollowed);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const canEdit = isAdmin || (currentUserId && source.createdByUserId === currentUserId);
+  const showActions = canEdit && !showFollowButton;
 
   const handleFollowToggle = async () => {
     setIsLoading(true);
@@ -117,22 +132,63 @@ export function SourceCard({
                     Global
                   </Badge>
                 )}
+                {!source.isActive && (
+                  <Badge variant="destructive" className="text-xs">
+                    Inactive
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
-          {showFollowButton && (
-            <Button
-              size="sm"
-              variant={isFollowing ? "outline" : "default"}
-              onClick={handleFollowToggle}
-              disabled={isLoading}
-            >
-              <Heart
-                className={`mr-1 h-4 w-4 ${isFollowing ? "fill-current" : ""}`}
-              />
-              {isFollowing ? "Following" : "Follow"}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {showFollowButton && (
+              <Button
+                size="sm"
+                variant={isFollowing ? "outline" : "default"}
+                onClick={handleFollowToggle}
+                disabled={isLoading}
+              >
+                <Heart
+                  className={`mr-1 h-4 w-4 ${isFollowing ? "fill-current" : ""}`}
+                />
+                {isFollowing ? "Following" : "Follow"}
+              </Button>
+            )}
+            {showActions && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <EditSourceDialog
+                    source={source}
+                    isAdmin={isAdmin}
+                    trigger={
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                    }
+                  />
+                  <DeleteSourceDialog
+                    sourceId={source.id}
+                    sourceName={source.name}
+                    trigger={
+                      <DropdownMenuItem
+                        onSelect={(e) => e.preventDefault()}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    }
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
       </CardHeader>
       {(source.description || source.followerCount !== undefined) && (

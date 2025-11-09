@@ -1,16 +1,30 @@
 import { redirect } from 'next/navigation';
-import { getUserRole } from '@/lib/auth';
+import { getUserRole, getUserId } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Source } from '@prisma/client';
 import { Shield, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { AddSourceDialog } from '@/components/sources/add-source-dialog';
+import { EditSourceDialog } from '@/components/sources/edit-source-dialog';
+import { DeleteSourceDialog } from '@/components/sources/delete-source-dialog';
 
-async function getGlobalSources(): Promise<Source[]> {
+async function getGlobalSources() {
   return prisma.source.findMany({
     where: { isGlobal: true },
     orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      url: true,
+      description: true,
+      avatarUrl: true,
+      isActive: true,
+      isGlobal: true,
+      createdByUserId: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 }
 
@@ -79,11 +93,15 @@ export default async function AdminSourcesPage() {
                   className="rounded-lg border bg-card p-4 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-semibold text-foreground">{source.name}</h3>
                       <p className="text-sm text-muted-foreground capitalize mt-1">
                         {source.type}
                       </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <EditSourceDialog source={source} isAdmin={true} />
+                      <DeleteSourceDialog sourceId={source.id} sourceName={source.name} />
                     </div>
                   </div>
                   {source.description && (
@@ -103,8 +121,8 @@ export default async function AdminSourcesPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         source.isActive
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
                       }`}
                     >
                       {source.isActive ? 'Active' : 'Inactive'}
