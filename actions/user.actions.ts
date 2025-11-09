@@ -1,5 +1,6 @@
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { importYouTubeSubscriptions } from "@/lib/subscription-import";
 
 export async function createUserFromWebhook(evt: WebhookEvent) {
   if (evt.type !== "user.created") return;
@@ -14,7 +15,7 @@ export async function createUserFromWebhook(evt: WebhookEvent) {
     throw new Error("No primary email address found");
   }
 
-  await prisma.user.create({
+  const newUser = await prisma.user.create({
     data: {
       clerkId: id,
       email: primaryEmail.email_address,
@@ -26,6 +27,26 @@ export async function createUserFromWebhook(evt: WebhookEvent) {
   });
 
   console.log(`User created: ${primaryEmail.email_address}`);
+
+  try {
+    const importResult = await importYouTubeSubscriptions(id, newUser.id);
+
+    if (importResult.success) {
+      console.log(
+        `YouTube subscriptions imported for ${primaryEmail.email_address}: ${importResult.channelsAdded} channels added, ${importResult.channelsLinked} follows created`
+      );
+    } else {
+      console.log(
+        `YouTube subscription import skipped or failed for ${primaryEmail.email_address}:`,
+        importResult.errors
+      );
+    }
+  } catch (error) {
+    console.error(
+      `Error importing YouTube subscriptions for ${primaryEmail.email_address}:`,
+      error
+    );
+  }
 }
 
 export async function updateUserFromWebhook(evt: WebhookEvent) {

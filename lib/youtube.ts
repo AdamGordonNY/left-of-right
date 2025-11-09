@@ -32,6 +32,14 @@ export interface YouTubePlaylist {
   publishedAt: string;
 }
 
+export interface YouTubeSubscription {
+  channelId: string;
+  channelTitle: string;
+  channelDescription: string;
+  thumbnailUrl: string;
+  subscribedAt: string;
+}
+
 /**
  * Extract channel ID from various YouTube URL formats
  * Supports:
@@ -302,5 +310,55 @@ export async function getVideoInfo(
   } catch (error) {
     console.error("Error fetching video info:", error);
     return null;
+  }
+}
+
+/**
+ * Get user's YouTube subscriptions using their OAuth access token
+ */
+export async function getUserSubscriptions(
+  accessToken: string
+): Promise<YouTubeSubscription[]> {
+  try {
+    const authenticatedYoutube = google.youtube({
+      version: "v3",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const subscriptions: YouTubeSubscription[] = [];
+    let pageToken: string | undefined;
+
+    do {
+      const response = await authenticatedYoutube.subscriptions.list({
+        part: ["snippet"],
+        mine: true,
+        maxResults: 50,
+        pageToken,
+      });
+
+      for (const item of response.data.items || []) {
+        if (!item.snippet) continue;
+
+        subscriptions.push({
+          channelId: item.snippet.resourceId?.channelId || "",
+          channelTitle: item.snippet.title || "Unknown Channel",
+          channelDescription: item.snippet.description || "",
+          thumbnailUrl:
+            item.snippet.thumbnails?.high?.url ||
+            item.snippet.thumbnails?.default?.url ||
+            "",
+          subscribedAt: item.snippet.publishedAt || new Date().toISOString(),
+        });
+      }
+
+      pageToken = response.data.nextPageToken || undefined;
+    } while (pageToken);
+
+    return subscriptions;
+  } catch (error) {
+    console.error("Error fetching user subscriptions:", error);
+    return [];
   }
 }
