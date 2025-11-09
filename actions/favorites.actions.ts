@@ -146,7 +146,15 @@ export async function isFavorited(
   contentItemId: string
 ): Promise<{ isFavorited: boolean; favoriteId?: string }> {
   try {
-    const dbUserId = await ensureUserExists();
+    // Don't throw error if user is not authenticated, just return false
+    let dbUserId: string | null = null;
+    try {
+      dbUserId = await ensureUserExists();
+    } catch (error) {
+      // User is not authenticated, return false
+      return { isFavorited: false };
+    }
+
     if (!dbUserId) {
       return { isFavorited: false };
     }

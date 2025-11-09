@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -21,22 +22,37 @@ export function FavoriteButton({
   variant = "ghost",
   className = "",
 }: FavoriteButtonProps) {
+  const { isSignedIn, isLoaded } = useUser();
   const [favorited, setFavorited] = useState(false);
   const [favoriteId, setFavoriteId] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function checkFavoriteStatus() {
-      const result = await isFavorited(contentItemId);
-      setFavorited(result.isFavorited);
-      setFavoriteId(result.favoriteId);
+      if (!isSignedIn) return;
+
+      try {
+        const result = await isFavorited(contentItemId);
+        setFavorited(result.isFavorited);
+        setFavoriteId(result.favoriteId);
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
+      }
     }
-    checkFavoriteStatus();
-  }, [contentItemId]);
+
+    if (isLoaded) {
+      checkFavoriteStatus();
+    }
+  }, [contentItemId, isSignedIn, isLoaded]);
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!isSignedIn) {
+      toast.error("Please sign in to add favorites");
+      return;
+    }
 
     setLoading(true);
 
@@ -67,6 +83,11 @@ export function FavoriteButton({
       setLoading(false);
     }
   };
+
+  // Don't show the button if Clerk hasn't loaded yet or user is not signed in
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
 
   return (
     <Button
