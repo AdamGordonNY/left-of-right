@@ -1,10 +1,5 @@
 import { google, youtube_v3 } from "googleapis";
-
-// Initialize YouTube API client
-const youtube = google.youtube({
-  version: "v3",
-  auth: process.env.YOUTUBE_API_KEY,
-});
+import { executeYouTubeOperation, getAuthenticatedYouTubeClient } from "./youtube-client";
 
 export interface YouTubeVideo {
   id: string;
@@ -83,12 +78,14 @@ export async function getChannelIdFromUrl(url: string): Promise<string | null> {
  */
 async function getChannelIdFromHandle(handle: string): Promise<string | null> {
   try {
-    const response = await youtube.search.list({
-      part: ["snippet"],
-      q: handle,
-      type: ["channel"],
-      maxResults: 1,
-    });
+    const response = await executeYouTubeOperation((client) =>
+      client.search.list({
+        part: ["snippet"],
+        q: handle,
+        type: ["channel"],
+        maxResults: 1,
+      })
+    );
 
     const channel = response.data.items?.[0];
     return channel?.snippet?.channelId || null;
@@ -105,10 +102,12 @@ async function getChannelIdFromUsername(
   username: string
 ): Promise<string | null> {
   try {
-    const response = await youtube.channels.list({
-      part: ["id"],
-      forUsername: username,
-    });
+    const response = await executeYouTubeOperation((client) =>
+      client.channels.list({
+        part: ["id"],
+        forUsername: username,
+      })
+    );
 
     return response.data.items?.[0]?.id || null;
   } catch (error) {
@@ -124,10 +123,12 @@ export async function getChannelInfo(
   channelId: string
 ): Promise<YouTubeChannel | null> {
   try {
-    const response = await youtube.channels.list({
-      part: ["snippet", "statistics"],
-      id: [channelId],
-    });
+    const response = await executeYouTubeOperation((client) =>
+      client.channels.list({
+        part: ["snippet", "statistics"],
+        id: [channelId],
+      })
+    );
 
     const channel = response.data.items?.[0];
     if (!channel || !channel.snippet) return null;
@@ -157,10 +158,12 @@ export async function getChannelVideos(
 ): Promise<YouTubeVideo[]> {
   try {
     // First, get the uploads playlist ID
-    const channelResponse = await youtube.channels.list({
-      part: ["contentDetails"],
-      id: [channelId],
-    });
+    const channelResponse = await executeYouTubeOperation((client) =>
+      client.channels.list({
+        part: ["contentDetails"],
+        id: [channelId],
+      })
+    );
 
     const uploadsPlaylistId =
       channelResponse.data.items?.[0]?.contentDetails?.relatedPlaylists
@@ -172,11 +175,13 @@ export async function getChannelVideos(
     }
 
     // Fetch videos from uploads playlist
-    const playlistResponse = await youtube.playlistItems.list({
-      part: ["snippet", "contentDetails"],
-      playlistId: uploadsPlaylistId,
-      maxResults,
-    });
+    const playlistResponse = await executeYouTubeOperation((client) =>
+      client.playlistItems.list({
+        part: ["snippet", "contentDetails"],
+        playlistId: uploadsPlaylistId,
+        maxResults,
+      })
+    );
 
     const videos: YouTubeVideo[] = [];
 
@@ -211,11 +216,13 @@ export async function getChannelPlaylists(
   maxResults: number = 50
 ): Promise<YouTubePlaylist[]> {
   try {
-    const response = await youtube.playlists.list({
-      part: ["snippet", "contentDetails"],
-      channelId,
-      maxResults,
-    });
+    const response = await executeYouTubeOperation((client) =>
+      client.playlists.list({
+        part: ["snippet", "contentDetails"],
+        channelId,
+        maxResults,
+      })
+    );
 
     const playlists: YouTubePlaylist[] = [];
 
@@ -250,11 +257,13 @@ export async function getPlaylistVideos(
   maxResults: number = 50
 ): Promise<YouTubeVideo[]> {
   try {
-    const response = await youtube.playlistItems.list({
-      part: ["snippet", "contentDetails"],
-      playlistId,
-      maxResults,
-    });
+    const response = await executeYouTubeOperation((client) =>
+      client.playlistItems.list({
+        part: ["snippet", "contentDetails"],
+        playlistId,
+        maxResults,
+      })
+    );
 
     const videos: YouTubeVideo[] = [];
 
@@ -288,10 +297,12 @@ export async function getVideoInfo(
   videoId: string
 ): Promise<YouTubeVideo | null> {
   try {
-    const response = await youtube.videos.list({
-      part: ["snippet"],
-      id: [videoId],
-    });
+    const response = await executeYouTubeOperation((client) =>
+      client.videos.list({
+        part: ["snippet"],
+        id: [videoId],
+      })
+    );
 
     const video = response.data.items?.[0];
     if (!video || !video.snippet) return null;
@@ -320,12 +331,7 @@ export async function getUserSubscriptions(
   accessToken: string
 ): Promise<YouTubeSubscription[]> {
   try {
-    const authenticatedYoutube = google.youtube({
-      version: "v3",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const authenticatedYoutube = getAuthenticatedYouTubeClient(accessToken);
 
     const subscriptions: YouTubeSubscription[] = [];
     let pageToken: string | undefined;
