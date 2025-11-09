@@ -8,6 +8,8 @@ import {
   syncAllYouTubeSources,
 } from "@/actions/sync.actions";
 import { toast } from "sonner";
+import { useQuotaError } from "@/hooks/use-quota-error";
+import { QuotaExceededDialog } from "@/components/notifications/quota-exceeded-dialog";
 
 interface SyncButtonProps {
   sourceId?: string;
@@ -16,22 +18,41 @@ interface SyncButtonProps {
 
 export function SyncYouTubeButton({ sourceId, sourceName }: SyncButtonProps) {
   const [isSyncing, setIsSyncing] = useState(false);
+  const { quotaError, isDialogOpen, setIsDialogOpen, handleQuotaError } = useQuotaError();
 
   const handleSync = async () => {
     setIsSyncing(true);
 
     try {
       if (sourceId) {
-        // Sync single source
         const result = await syncYouTubeSource(sourceId);
+
+        if (result.success === false && result.error === "quota_exceeded") {
+          handleQuotaError({
+            name: "QuotaExhaustedError",
+            message: result.message || "YouTube API quota exceeded",
+            resetAt: result.resetAt ? new Date(result.resetAt) : new Date(),
+          });
+          return;
+        }
+
         toast.success(
-          `Synced ${result.videosAdded + result.videosUpdated} videos from ${
+          `Synced ${(result.videosAdded || 0) + (result.videosUpdated || 0)} videos from ${
             sourceName || "channel"
           }`
         );
       } else {
-        // Sync all sources
         const result = await syncAllYouTubeSources();
+
+        if (result.quotaExceeded && result.resetAt) {
+          handleQuotaError({
+            name: "QuotaExhaustedError",
+            message: "YouTube API quota exceeded",
+            resetAt: new Date(result.resetAt),
+          });
+          return;
+        }
+
         toast.success(
           `Synced ${
             result.totalVideosAdded + result.totalVideosUpdated
@@ -44,25 +65,38 @@ export function SyncYouTubeButton({ sourceId, sourceName }: SyncButtonProps) {
       }
     } catch (error) {
       console.error("Sync error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to sync videos"
-      );
+
+      if (!handleQuotaError(error)) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to sync videos"
+        );
+      }
     } finally {
       setIsSyncing(false);
     }
   };
 
   return (
-    <Button
-      onClick={handleSync}
-      disabled={isSyncing}
-      variant="outline"
-      size="sm"
-    >
-      <RefreshCw
-        className={`mr-2 h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
-      />
-      {isSyncing ? "Syncing..." : sourceId ? "Sync Videos" : "Sync All Sources"}
-    </Button>
+    <>
+      <Button
+        onClick={handleSync}
+        disabled={isSyncing}
+        variant="outline"
+        size="sm"
+      >
+        <RefreshCw
+          className={`mr-2 h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
+        />
+        {isSyncing ? "Syncing..." : sourceId ? "Sync Videos" : "Sync All Sources"}
+      </Button>
+
+      {quotaError && (
+        <QuotaExceededDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          resetAt={quotaError.resetAt}
+        />
+      )}
+    </>
   );
 }

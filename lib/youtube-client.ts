@@ -1,4 +1,15 @@
 import { google, youtube_v3 } from "googleapis";
+import { getCachedData, setCachedData, logQuotaUsage, getMidnightPST } from "./youtube-cache";
+
+export class QuotaExhaustedError extends Error {
+  public resetAt: Date;
+
+  constructor(message: string, resetAt: Date) {
+    super(message);
+    this.name = "QuotaExhaustedError";
+    this.resetAt = resetAt;
+  }
+}
 
 interface YouTubeApiError {
   code?: number;
@@ -70,30 +81,117 @@ class YouTubeClientManager {
   }
 
   async executeWithFallback<T>(
-    operation: (client: youtube_v3.Youtube) => Promise<T>
+    operation: (client: youtube_v3.Youtube) => Promise<T>,
+    operationType: string,
+    params: any = {},
+    cacheOptions?: { ttlMinutes?: number }
   ): Promise<T> {
+    const keyType = this.usingBackupKey ? "backup" : "primary";
+
     try {
       const client = this.getClient();
       const result = await operation(client);
+
+      await logQuotaUsage({
+        apiKeyType: keyType,
+        operationType,
+        success: true,
+        quotaExceeded: false,
+      });
+
+      if (cacheOptions) {
+        await setCachedData(operationType, params, result, cacheOptions);
+      }
+
       return result;
     } catch (error) {
-      if (this.isQuotaExceededError(error) && !this.usingBackupKey && this.backupKey) {
-        console.warn("Primary YouTube API key quota exceeded. Switching to backup key...");
-        this.usingBackupKey = true;
+      if (this.isQuotaExceededError(error)) {
+        await logQuotaUsage({
+          apiKeyType: keyType,
+          operationType,
+          success: false,
+          quotaExceeded: true,
+          errorType: "quota_exceeded",
+        });
 
-        try {
-          const backupClient = this.getClient();
-          const result = await operation(backupClient);
-          console.log("Successfully completed request using backup API key");
-          return result;
-        } catch (backupError) {
-          if (this.isQuotaExceededError(backupError)) {
-            console.error("Both YouTube API keys have exceeded their quota");
-            throw new Error("YouTube API quota exceeded for all available keys. Please try again later.");
+        if (!this.usingBackupKey && this.backupKey) {
+          console.warn("Primary YouTube API key quota exceeded. Switching to backup key...");
+          this.usingBackupKey = true;
+
+          try {
+            const backupClient = this.getClient();
+            const result = await operation(backupClient);
+
+            await logQuotaUsage({
+              apiKeyType: "backup",
+              operationType,
+              success: true,
+              quotaExceeded: false,
+            });
+
+            if (cacheOptions) {
+              await setCachedData(operationType, params, result, cacheOptions);
+            }
+
+            console.log("Successfully completed request using backup API key");
+            return result;
+          } catch (backupError) {
+            if (this.isQuotaExceededError(backupError)) {
+              await logQuotaUsage({
+                apiKeyType: "backup",
+                operationType,
+                success: false,
+                quotaExceeded: true,
+                errorType: "quota_exceeded",
+              });
+
+              console.error("Both YouTube API keys have exceeded their quota");
+
+              const cachedData = await getCachedData<T>(operationType, params);
+              if (cachedData) {
+                console.log("Returning cached data due to quota exhaustion");
+                return cachedData;
+              }
+
+              const resetAt = getMidnightPST();
+              throw new QuotaExhaustedError(
+                "YouTube API quota exceeded for all available keys. Please try again after midnight PST.",
+                resetAt
+              );
+            }
+
+            await logQuotaUsage({
+              apiKeyType: "backup",
+              operationType,
+              success: false,
+              quotaExceeded: false,
+              errorType: String(backupError),
+            });
+
+            throw backupError;
           }
-          throw backupError;
         }
+
+        const cachedData = await getCachedData<T>(operationType, params);
+        if (cachedData) {
+          console.log("Returning cached data due to quota exhaustion");
+          return cachedData;
+        }
+
+        const resetAt = getMidnightPST();
+        throw new QuotaExhaustedError(
+          "YouTube API quota exceeded. Please try again after midnight PST.",
+          resetAt
+        );
       }
+
+      await logQuotaUsage({
+        apiKeyType: keyType,
+        operationType,
+        success: false,
+        quotaExceeded: false,
+        errorType: String(error),
+      });
 
       throw error;
     }
@@ -126,7 +224,10 @@ export function getAuthenticatedYouTubeClient(accessToken: string): youtube_v3.Y
 }
 
 export async function executeYouTubeOperation<T>(
-  operation: (client: youtube_v3.Youtube) => Promise<T>
+  operation: (client: youtube_v3.Youtube) => Promise<T>,
+  operationType: string,
+  params: any = {},
+  cacheOptions?: { ttlMinutes?: number }
 ): Promise<T> {
-  return youtubeClientManager.executeWithFallback(operation);
+  return youtubeClientManager.executeWithFallback(operation, operationType, params, cacheOptions);
 }

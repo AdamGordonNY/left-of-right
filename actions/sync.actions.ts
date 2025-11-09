@@ -7,6 +7,7 @@ import {
   getChannelVideos,
   getChannelInfo,
 } from "@/lib/youtube";
+import { QuotaExhaustedError } from "@/lib/youtube-client";
 import { revalidatePath } from "next/cache";
 
 export async function syncYouTubeSource(sourceId: string) {
@@ -95,6 +96,18 @@ export async function syncYouTubeSource(sourceId: string) {
     };
   } catch (error) {
     console.error("Error syncing YouTube source:", error);
+
+    if (error instanceof QuotaExhaustedError) {
+      return {
+        success: false,
+        error: "quota_exceeded",
+        message: error.message,
+        resetAt: error.resetAt.toISOString(),
+        videosAdded,
+        videosUpdated,
+      };
+    }
+
     throw error;
   }
 }
@@ -139,11 +152,21 @@ export async function syncAllYouTubeSources() {
     let sourcesProcessed = 0;
     const errors: string[] = [];
 
+    let quotaExceeded = false;
+    let resetAt: string | null = null;
+
     for (const source of sources) {
       try {
         const result = await syncYouTubeSource(source.id);
-        totalVideosAdded += result.videosAdded;
-        totalVideosUpdated += result.videosUpdated;
+
+        if (result.success === false && result.error === "quota_exceeded") {
+          quotaExceeded = true;
+          resetAt = result.resetAt || null;
+          break;
+        }
+
+        totalVideosAdded += result.videosAdded || 0;
+        totalVideosUpdated += result.videosUpdated || 0;
         sourcesProcessed++;
       } catch (error) {
         console.error(`Error syncing ${source.name}:`, error);
@@ -152,11 +175,13 @@ export async function syncAllYouTubeSources() {
     }
 
     return {
-      success: true,
+      success: !quotaExceeded,
       sourcesProcessed,
       totalVideosAdded,
       totalVideosUpdated,
       errors,
+      quotaExceeded,
+      resetAt,
     };
   } catch (error) {
     console.error("Error syncing all YouTube sources:", error);
