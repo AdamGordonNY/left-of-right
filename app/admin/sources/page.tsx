@@ -24,8 +24,8 @@ export default async function AdminSourcesPage() {
   const sources = await getGlobalSources();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <header className="border-b bg-white/80 backdrop-blur-sm">
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -40,10 +40,10 @@ export default async function AdminSourcesPage() {
                   <Shield className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                  <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                     Global Sources
                   </h1>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-muted-foreground">
                     Sources available to all users
                   </p>
                 </div>
@@ -56,38 +56,38 @@ export default async function AdminSourcesPage() {
 
       <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {sources.length === 0 ? (
-          <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-slate-50 p-8 text-center">
-            <div className="rounded-full bg-slate-100 p-6">
-              <Shield className="h-12 w-12 text-slate-400" />
+          <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 p-8 text-center">
+            <div className="rounded-full bg-muted p-6">
+              <Shield className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">
+            <h3 className="mt-4 text-lg font-semibold text-foreground">
               No global sources yet
             </h3>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-muted-foreground">
               Add your first global source to get started
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Showing {sources.length} global {sources.length === 1 ? 'source' : 'sources'}
             </p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sources.map((source) => (
                 <div
                   key={source.id}
-                  className="rounded-lg border bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+                  className="rounded-lg border bg-card p-4 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-slate-900">{source.name}</h3>
-                      <p className="text-sm text-slate-600 capitalize mt-1">
+                      <h3 className="font-semibold text-foreground">{source.name}</h3>
+                      <p className="text-sm text-muted-foreground capitalize mt-1">
                         {source.type}
                       </p>
                     </div>
                   </div>
                   {source.description && (
-                    <p className="mt-3 text-sm text-slate-600 line-clamp-2">
+                    <p className="mt-3 text-sm text-muted-foreground line-clamp-2">
                       {source.description}
                     </p>
                   )}
@@ -96,7 +96,7 @@ export default async function AdminSourcesPage() {
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
                     >
                       View Source
                     </a>

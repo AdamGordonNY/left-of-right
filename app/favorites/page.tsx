@@ -24,13 +24,13 @@ export default async function FavoritesPage() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i} className="animate-pulse">
-                <div className="aspect-video bg-slate-200" />
+                <div className="aspect-video bg-muted" />
                 <CardHeader>
-                  <div className="h-4 bg-slate-200 rounded w-3/4" />
+                  <div className="h-4 bg-muted rounded w-3/4" />
                 </CardHeader>
                 <CardContent>
-                  <div className="h-3 bg-slate-200 rounded w-full mb-2" />
-                  <div className="h-3 bg-slate-200 rounded w-2/3" />
+                  <div className="h-3 bg-muted rounded w-full mb-2" />
+                  <div className="h-3 bg-muted rounded w-2/3" />
                 </CardContent>
               </Card>
             ))}

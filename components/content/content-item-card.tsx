@@ -20,9 +20,15 @@ interface ContentItemCardProps {
   item: ContentItem;
   source: Source;
   slug: string;
+  viewMode?: "grid" | "list";
 }
 
-export function ContentItemCard({ item, source, slug }: ContentItemCardProps) {
+export function ContentItemCard({
+  item,
+  source,
+  slug,
+  viewMode = "grid",
+}: ContentItemCardProps) {
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const isVideo = item.type === "video";
   const Icon = isVideo ? PlayCircle : FileText;
@@ -33,6 +39,85 @@ export function ContentItemCard({ item, source, slug }: ContentItemCardProps) {
       setIsPlayerOpen(true);
     }
   };
+
+  if (viewMode === "list") {
+    const listContent = (
+      <Card className="group overflow-hidden transition-all hover:shadow-lg cursor-pointer">
+        <div className="flex gap-4 p-4">
+          {item.thumbnailUrl && (
+            <div className="relative w-48 flex-shrink-0 aspect-video overflow-hidden bg-muted rounded-md">
+              <img
+                src={item.thumbnailUrl}
+                alt={item.title}
+                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
+                <Icon className="h-12 w-12 text-white" />
+              </div>
+              <Badge
+                className={`absolute left-2 top-2 ${
+                  isVideo
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                {item.type}
+              </Badge>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-lg line-clamp-2 mb-2">
+                  {item.title}
+                </h3>
+                <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
+                  <span className="font-medium">{source.name}</span>
+                  {item.publishedAt && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>
+                        {format(new Date(item.publishedAt), "MMM d, yyyy")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {item.description && (
+                  <p className="line-clamp-2 text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+              <FavoriteButton
+                contentItemId={item.id}
+                className="flex-shrink-0"
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+
+    return (
+      <>
+        {isVideo ? (
+          <div onClick={handleClick}>{listContent}</div>
+        ) : (
+          <Link href={`/${slug}/content/${item.id}`}>{listContent}</Link>
+        )}
+
+        {isVideo && (
+          <VideoPlayerDialog
+            isOpen={isPlayerOpen}
+            onClose={() => setIsPlayerOpen(false)}
+            videoUrl={item.url}
+            title={item.title}
+            description={item.description || undefined}
+          />
+        )}
+      </>
+    );
+  }
 
   const cardContent = (
     <Card className="group overflow-hidden transition-all hover:shadow-lg h-full cursor-pointer">

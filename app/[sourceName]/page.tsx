@@ -77,8 +77,8 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
     .slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="border-b bg-white">
+    <div className="min-h-screen bg-background">
+      <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-start gap-6">
             <Avatar className="h-24 w-24">

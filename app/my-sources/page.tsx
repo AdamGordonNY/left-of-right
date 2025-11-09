@@ -90,21 +90,21 @@ export default async function MySourcesPage() {
 
           <TabsContent value="followed" className="space-y-6">
             {followedSourcesWithStatus.length === 0 ? (
-              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-slate-50 p-8 text-center">
-                <div className="rounded-full bg-slate-100 p-6">
-                  <Heart className="h-12 w-12 text-slate-400" />
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 p-8 text-center">
+                <div className="rounded-full bg-muted p-6">
+                  <Heart className="h-12 w-12 text-muted-foreground" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                <h3 className="mt-4 text-lg font-semibold text-foreground">
                   No sources followed yet
                 </h3>
-                <p className="mt-2 text-sm text-slate-600 max-w-md">
+                <p className="mt-2 text-sm text-muted-foreground max-w-md">
                   Start following YouTube channels and Substack authors to build
                   your personalized content feed
                 </p>
               </div>
             ) : (
               <>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   You are following {followedSourcesWithStatus.length}{" "}
                   {followedSourcesWithStatus.length === 1
                     ? "source"
@@ -120,28 +120,28 @@ export default async function MySourcesPage() {
           </TabsContent>
 
           <TabsContent value="discover" className="space-y-6">
-            <div className="rounded-lg border bg-blue-50 p-4">
-              <p className="text-sm text-blue-900">
+            <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/30 p-4">
+              <p className="text-sm text-blue-900 dark:text-blue-100">
                 Discover new sources to follow. Global sources are curated by
                 admins, while you can also add your own personal sources.
               </p>
             </div>
 
             {sourcesWithStatus.length === 0 ? (
-              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-slate-50 p-8 text-center">
-                <div className="rounded-full bg-slate-100 p-6">
-                  <Library className="h-12 w-12 text-slate-400" />
+              <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 p-8 text-center">
+                <div className="rounded-full bg-muted p-6">
+                  <Library className="h-12 w-12 text-muted-foreground" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                <h3 className="mt-4 text-lg font-semibold text-foreground">
                   No sources available
                 </h3>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Add your first source to get started
                 </p>
               </div>
             ) : (
               <>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   Showing {sourcesWithStatus.length} available{" "}
                   {sourcesWithStatus.length === 1 ? "source" : "sources"}
                 </p>

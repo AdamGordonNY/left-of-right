@@ -1,47 +1,103 @@
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft, Video, List } from 'lucide-react';
-import { getSourceBySlug, generateSlug } from '@/lib/slug-utils';
-import { getUserId } from '@/lib/auth';
-import { getContentItemsBySource, getPlaylistsBySource, getPlaylistCount } from '@/lib/prisma-sources';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ContentItemCard } from '@/components/content/content-item-card';
-import { PlaylistCard } from '@/components/content/playlist-card';
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  Video,
+  List as ListIcon,
+  Grid3x3,
+  LayoutGrid,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ContentItemCard } from "@/components/content/content-item-card";
+import { PlaylistCard } from "@/components/content/playlist-card";
+import type { ContentItem, Source, Playlist } from "@prisma/client";
 
 interface AllContentPageProps {
   params: Promise<{
     sourceName: string;
   }>;
-  searchParams: Promise<{
-    tab?: string;
-  }>;
 }
 
-export default async function AllContentPage({ params, searchParams }: AllContentPageProps) {
-  const { sourceName } = await params;
-  const { tab } = await searchParams;
-  const userId = await getUserId();
-  const source = await getSourceBySlug(sourceName, userId || undefined);
+export default function AllContentPage({ params }: AllContentPageProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [sourceName, setSourceName] = useState<string>("");
+  const [source, setSource] = useState<Source | null>(null);
+  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [playlistCount, setPlaylistCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  if (!source) {
-    notFound();
+  const tab = searchParams.get("tab") || "videos";
+
+  useEffect(() => {
+    params.then((p) => setSourceName(p.sourceName));
+  }, [params]);
+
+  useEffect(() => {
+    if (!sourceName) return;
+
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/sources/by-slug/${sourceName}`);
+        if (!res.ok) {
+          router.push("/404");
+          return;
+        }
+
+        const data = await res.json();
+        setSource(data.source);
+        setContentItems(data.contentItems || []);
+        setPlaylists(data.playlists || []);
+        setPlaylistCount(data.playlistCount || 0);
+      } catch (error) {
+        console.error("Error loading content:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [sourceName, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-10 w-32 bg-muted rounded" />
+            <div className="h-8 w-64 bg-muted rounded" />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-64 bg-muted rounded-lg" />
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
-  const isYoutube = source.type === 'youtube';
-  const defaultTab = tab || 'videos';
+  if (!source) {
+    return null;
+  }
 
-  const [contentItems, playlists, playlistCount] = await Promise.all([
-    getContentItemsBySource(source.id),
-    isYoutube ? getPlaylistsBySource(source.id) : Promise.resolve([]),
-    isYoutube ? getPlaylistCount(source.id) : Promise.resolve(0),
-  ]);
+  const isYoutube = source.type === "youtube";
+  const slug = sourceName;
 
-  const slug = generateSlug(source.name);
+  const handleTabChange = (value: string) => {
+    router.push(`/${slug}/content?tab=${value}`);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <Link href={`/${slug}`}>
           <Button variant="ghost" className="mb-6">
@@ -51,39 +107,69 @@ export default async function AllContentPage({ params, searchParams }: AllConten
         </Link>
 
         {isYoutube && playlistCount > 0 ? (
-          <Tabs defaultValue={defaultTab} className="w-full">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-slate-900 mb-4">
-                All Content from {source.name}
-              </h1>
-              <TabsList>
-                <TabsTrigger value="videos" className="flex items-center gap-2">
-                  <Video className="h-4 w-4" />
-                  Videos ({contentItems.length})
-                </TabsTrigger>
-                <TabsTrigger value="playlists" className="flex items-center gap-2">
-                  <List className="h-4 w-4" />
-                  Playlists ({playlistCount})
-                </TabsTrigger>
-              </TabsList>
+          <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold mb-4">
+                  All Content from {source.name}
+                </h1>
+                <TabsList>
+                  <TabsTrigger
+                    value="videos"
+                    className="flex items-center gap-2"
+                  >
+                    <Video className="h-4 w-4" />
+                    Videos ({contentItems.length})
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="playlists"
+                    className="flex items-center gap-2"
+                  >
+                    <ListIcon className="h-4 w-4" />
+                    Playlists ({playlistCount})
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <ToggleGroup
+                type="single"
+                value={viewMode}
+                onValueChange={(v) => v && setViewMode(v as "grid" | "list")}
+              >
+                <ToggleGroupItem value="grid" aria-label="Grid view">
+                  <LayoutGrid className="h-4 w-4" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="list" aria-label="List view">
+                  <Grid3x3 className="h-4 w-4 rotate-90" />
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
 
             <TabsContent value="videos">
               {contentItems.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
-                    <Video className="h-12 w-12 text-slate-400 mb-4" />
-                    <p className="text-slate-600">No videos available yet</p>
+                    <Video className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      No videos available yet
+                    </p>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      : "flex flex-col gap-4"
+                  }
+                >
                   {contentItems.map((item) => (
                     <ContentItemCard
                       key={item.id}
                       item={item}
                       source={source}
                       slug={slug}
+                      viewMode={viewMode}
                     />
                   ))}
                 </div>
@@ -94,18 +180,27 @@ export default async function AllContentPage({ params, searchParams }: AllConten
               {playlists.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
-                    <List className="h-12 w-12 text-slate-400 mb-4" />
-                    <p className="text-slate-600">No playlists available yet</p>
+                    <ListIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      No playlists available yet
+                    </p>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      : "flex flex-col gap-4"
+                  }
+                >
                   {playlists.map((playlist) => (
                     <PlaylistCard
                       key={playlist.id}
                       playlist={playlist}
                       source={source}
                       slug={slug}
+                      viewMode={viewMode}
                     />
                   ))}
                 </div>
@@ -114,30 +209,55 @@ export default async function AllContentPage({ params, searchParams }: AllConten
           </Tabs>
         ) : (
           <>
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-slate-900">
-                All Content from {source.name}
-              </h1>
-              <p className="text-slate-600 mt-2">
-                {contentItems.length} {contentItems.length === 1 ? 'video' : 'videos'} available
-              </p>
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold">
+                  All Content from {source.name}
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  {contentItems.length}{" "}
+                  {contentItems.length === 1 ? "video" : "videos"} available
+                </p>
+              </div>
+
+              <ToggleGroup
+                type="single"
+                value={viewMode}
+                onValueChange={(v) => v && setViewMode(v as "grid" | "list")}
+              >
+                <ToggleGroupItem value="grid" aria-label="Grid view">
+                  <LayoutGrid className="h-4 w-4" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="list" aria-label="List view">
+                  <Grid3x3 className="h-4 w-4 rotate-90" />
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
 
             {contentItems.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Video className="h-12 w-12 text-slate-400 mb-4" />
-                  <p className="text-slate-600">No content available yet</p>
+                  <Video className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    No content available yet
+                  </p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                    : "flex flex-col gap-4"
+                }
+              >
                 {contentItems.map((item) => (
                   <ContentItemCard
                     key={item.id}
                     item={item}
                     source={source}
                     slug={slug}
+                    viewMode={viewMode}
                   />
                 ))}
               </div>
