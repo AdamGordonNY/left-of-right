@@ -1,5 +1,5 @@
 import { google, youtube_v3 } from "googleapis";
-import { executeYouTubeOperation, getAuthenticatedYouTubeClient } from "./youtube-client";
+import { executeYouTubeOperation } from "./youtube-client-nextjs";
 
 export interface YouTubeVideo {
   id: string;
@@ -80,16 +80,18 @@ async function getChannelIdFromHandle(handle: string): Promise<string | null> {
   try {
     const params = { handle };
     const response = await executeYouTubeOperation(
-      (client) =>
-        client.search.list({
+      (apiKey) => {
+        const youtube = google.youtube({ version: "v3", auth: apiKey });
+        return youtube.search.list({
           part: ["snippet"],
           q: handle,
           type: ["channel"],
           maxResults: 1,
-        }),
+        });
+      },
       "search.channelByHandle",
       params,
-      { ttlMinutes: 1440 }
+      { revalidate: 86400 } // 24 hours
     );
 
     const channel = response.data.items?.[0];
@@ -109,14 +111,16 @@ async function getChannelIdFromUsername(
   try {
     const params = { username };
     const response = await executeYouTubeOperation(
-      (client) =>
-        client.channels.list({
+      (apiKey) => {
+        const youtube = google.youtube({ version: "v3", auth: apiKey });
+        return youtube.channels.list({
           part: ["id"],
           forUsername: username,
-        }),
+        });
+      },
       "channels.byUsername",
       params,
-      { ttlMinutes: 1440 }
+      { revalidate: 86400 } // 24 hours
     );
 
     return response.data.items?.[0]?.id || null;
@@ -135,14 +139,16 @@ export async function getChannelInfo(
   try {
     const params = { channelId };
     const response = await executeYouTubeOperation(
-      (client) =>
-        client.channels.list({
+      (apiKey) => {
+        const youtube = google.youtube({ version: "v3", auth: apiKey });
+        return youtube.channels.list({
           part: ["snippet", "statistics"],
           id: [channelId],
-        }),
+        });
+      },
       "channels.info",
       params,
-      { ttlMinutes: 1440 }
+      { revalidate: 86400 } // 24 hours
     );
 
     const channel = response.data.items?.[0];
@@ -174,14 +180,16 @@ export async function getChannelVideos(
   try {
     const channelParams = { channelId };
     const channelResponse = await executeYouTubeOperation(
-      (client) =>
-        client.channels.list({
+      (apiKey) => {
+        const youtube = google.youtube({ version: "v3", auth: apiKey });
+        return youtube.channels.list({
           part: ["contentDetails"],
           id: [channelId],
-        }),
+        });
+      },
       "channels.contentDetails",
       channelParams,
-      { ttlMinutes: 1440 }
+      { revalidate: 86400 } // 24 hours
     );
 
     const uploadsPlaylistId =
@@ -195,15 +203,17 @@ export async function getChannelVideos(
 
     const playlistParams = { playlistId: uploadsPlaylistId, maxResults };
     const playlistResponse = await executeYouTubeOperation(
-      (client) =>
-        client.playlistItems.list({
+      (apiKey) => {
+        const youtube = google.youtube({ version: "v3", auth: apiKey });
+        return youtube.playlistItems.list({
           part: ["snippet", "contentDetails"],
           playlistId: uploadsPlaylistId,
           maxResults,
-        }),
+        });
+      },
       "playlistItems.list",
       playlistParams,
-      { ttlMinutes: 30 }
+      { revalidate: 1800 } // 30 minutes
     );
 
     const videos: YouTubeVideo[] = [];
@@ -241,15 +251,17 @@ export async function getChannelPlaylists(
   try {
     const params = { channelId, maxResults };
     const response = await executeYouTubeOperation(
-      (client) =>
-        client.playlists.list({
+      (apiKey) => {
+        const youtube = google.youtube({ version: "v3", auth: apiKey });
+        return youtube.playlists.list({
           part: ["snippet", "contentDetails"],
           channelId,
           maxResults,
-        }),
+        });
+      },
       "playlists.list",
       params,
-      { ttlMinutes: 120 }
+      { revalidate: 7200 } // 2 hours
     );
 
     const playlists: YouTubePlaylist[] = [];
@@ -287,15 +299,17 @@ export async function getPlaylistVideos(
   try {
     const params = { playlistId, maxResults };
     const response = await executeYouTubeOperation(
-      (client) =>
-        client.playlistItems.list({
+      (apiKey) => {
+        const youtube = google.youtube({ version: "v3", auth: apiKey });
+        return youtube.playlistItems.list({
           part: ["snippet", "contentDetails"],
           playlistId,
           maxResults,
-        }),
+        });
+      },
       "playlistItems.videos",
       params,
-      { ttlMinutes: 60 }
+      { revalidate: 3600 } // 1 hour
     );
 
     const videos: YouTubeVideo[] = [];
@@ -332,14 +346,16 @@ export async function getVideoInfo(
   try {
     const params = { videoId };
     const response = await executeYouTubeOperation(
-      (client) =>
-        client.videos.list({
+      (apiKey) => {
+        const youtube = google.youtube({ version: "v3", auth: apiKey });
+        return youtube.videos.list({
           part: ["snippet"],
           id: [videoId],
-        }),
+        });
+      },
       "videos.info",
       params,
-      { ttlMinutes: 1440 }
+      { revalidate: 86400 } // 24 hours
     );
 
     const video = response.data.items?.[0];
@@ -364,18 +380,24 @@ export async function getVideoInfo(
 
 /**
  * Get user's YouTube subscriptions using their OAuth access token
+ * Note: This function doesn't use caching as it requires user authentication
  */
 export async function getUserSubscriptions(
   accessToken: string
 ): Promise<YouTubeSubscription[]> {
   try {
-    const authenticatedYoutube = getAuthenticatedYouTubeClient(accessToken);
+    const youtube = google.youtube({
+      version: "v3",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
     const subscriptions: YouTubeSubscription[] = [];
     let pageToken: string | undefined;
 
     do {
-      const response = await authenticatedYoutube.subscriptions.list({
+      const response = await youtube.subscriptions.list({
         part: ["snippet"],
         mine: true,
         maxResults: 50,
