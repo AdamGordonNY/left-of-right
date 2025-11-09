@@ -1,5 +1,6 @@
-import { auth, currentUser } from '@clerk/nextjs/server';
-import { UserRole } from './database.types';
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { UserRole } from "./database.types";
+import { prisma } from "./prisma";
 
 export async function getCurrentUser() {
   const user = await currentUser();
@@ -14,30 +15,35 @@ export async function getUserId() {
 export async function requireAuth() {
   const { userId } = await auth();
   if (!userId) {
-    throw new Error('Unauthorized');
+    throw new Error("Unauthorized");
   }
   return userId;
 }
 
 export async function getUserRole(): Promise<UserRole> {
-  const user = await currentUser();
-  if (!user) {
-    return 'member';
+  const clerkUser = await currentUser();
+  if (!clerkUser) {
+    return "member";
   }
 
-  const role = user.publicMetadata?.role as UserRole;
-  return role || 'member';
+  // Get role from database instead of Clerk metadata
+  const dbUser = await prisma.user.findUnique({
+    where: { clerkId: clerkUser.id },
+    select: { role: true },
+  });
+
+  return (dbUser?.role as UserRole) || "member";
 }
 
 export async function isAdmin(): Promise<boolean> {
   const role = await getUserRole();
-  return role === 'admin';
+  return role === "admin";
 }
 
 export async function requireAdmin() {
   const admin = await isAdmin();
   if (!admin) {
-    throw new Error('Admin access required');
+    throw new Error("Admin access required");
   }
   return true;
 }
