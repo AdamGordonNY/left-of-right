@@ -1,9 +1,13 @@
-import { getUserId } from '@/lib/auth';
-import { getFollowedSourcesWithRecentContent, getGlobalSourcesWithRecentContent } from '@/lib/feed-queries';
-import { Heart, Library } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ChannelFeedCard } from '@/components/feed/channel-feed-card';
+import { getUserId } from "@/lib/auth";
+import {
+  getFollowedSourcesWithRecentContent,
+  getGlobalSourcesWithRecentContent,
+} from "@/lib/feed-queries";
+import { Heart, Library } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ChannelFeedCard } from "@/components/feed/channel-feed-card";
+import { WelcomeBanner } from "@/components/home/welcome-banner";
 
 export default async function Home() {
   const userId = await getUserId();
@@ -26,16 +30,18 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
       <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <WelcomeBanner />
+
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-3xl font-bold text-foreground">
-                {isPersonalFeed ? 'Your Feed' : 'Discover Content'}
+                {isPersonalFeed ? "Your Feed" : "Discover Content"}
               </h2>
               <p className="text-muted-foreground mt-1">
                 {isPersonalFeed
-                  ? 'Latest content from channels you follow'
-                  : 'Explore curated channels and content'}
+                  ? "Latest content from channels you follow"
+                  : "Explore curated channels and content"}
               </p>
             </div>
             {userId && (
@@ -57,7 +63,8 @@ export default async function Home() {
                     You're not following any channels yet
                   </p>
                   <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                    Start following channels to build your personalized feed. Browse global sources below or{' '}
+                    Start following channels to build your personalized feed.
+                    Browse global sources below or{" "}
                     <Link href="/my-sources" className="underline font-medium">
                       manage your sources
                     </Link>
