@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
     // Get all users with API keys
     const usersWithKeys = await prisma.user.findMany({
       where: {
-        NOT: {
-          youtubeApiKey: null,
+        youtubeApiKey: {
+          not: null,
         },
       },
       select: {
@@ -97,8 +97,8 @@ export async function GET(request: NextRequest) {
     // Count users with API keys configured
     const usersWithKeys = await prisma.user.count({
       where: {
-        NOT: {
-          youtubeApiKey: null,
+        youtubeApiKey: {
+          not: null,
         },
       },
     });
@@ -106,8 +106,8 @@ export async function GET(request: NextRequest) {
     // Get users with exhausted quotas
     const users = await prisma.user.findMany({
       where: {
-        NOT: {
-          youtubeApiKey: null,
+        youtubeApiKey: {
+          not: null,
         },
       },
       select: {
