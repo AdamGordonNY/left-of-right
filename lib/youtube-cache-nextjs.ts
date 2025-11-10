@@ -2,7 +2,10 @@ import { unstable_cache } from "next/cache";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 
-const CACHE_DIR = join(process.cwd(), ".cache");
+// Use /tmp for serverless environments (Vercel, AWS Lambda, etc.)
+const CACHE_DIR = process.env.VERCEL
+  ? join("/tmp", ".cache")
+  : join(process.cwd(), ".cache");
 const QUOTA_FILE = join(CACHE_DIR, "quota-status.json");
 
 export interface QuotaStatus {
@@ -44,7 +47,23 @@ export function getMidnightPST(): Date {
 
 // Read quota status from file
 export async function getQuotaStatus(): Promise<QuotaStatus> {
+  // Always ensure cache directory exists before any operation
   await ensureCacheDir();
+
+  const defaultStatus: QuotaStatus = {
+    primary: {
+      isExhausted: false,
+      exhaustedAt: null,
+      resetAt: null,
+      requestsToday: 0,
+    },
+    backup: {
+      isExhausted: false,
+      exhaustedAt: null,
+      resetAt: null,
+      requestsToday: 0,
+    },
+  };
 
   try {
     const data = await readFile(QUOTA_FILE, "utf-8");
@@ -68,22 +87,25 @@ export async function getQuotaStatus(): Promise<QuotaStatus> {
     }
 
     return status;
-  } catch (error) {
-    // Return default status if file doesn't exist
-    return {
-      primary: {
-        isExhausted: false,
-        exhaustedAt: null,
-        resetAt: null,
-        requestsToday: 0,
-      },
-      backup: {
-        isExhausted: false,
-        exhaustedAt: null,
-        resetAt: null,
-        requestsToday: 0,
-      },
-    };
+  } catch (error: any) {
+    // If file doesn't exist, create it with default status
+    if (error.code === "ENOENT") {
+      try {
+        await writeFile(
+          QUOTA_FILE,
+          JSON.stringify(defaultStatus, null, 2),
+          "utf-8"
+        );
+      } catch (writeError) {
+        console.error(
+          "[YouTube Cache] Failed to create quota status file:",
+          writeError
+        );
+      }
+    }
+
+    // Return default status
+    return defaultStatus;
   }
 }
 
