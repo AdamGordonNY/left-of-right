@@ -50,15 +50,11 @@ export async function POST(request: NextRequest) {
     // Get user's database ID
     const dbUser = await prisma.user.findUnique({
       where: { clerkId: userId },
-      select: { id: true },
     });
 
     if (!dbUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    // User ID for API key lookup
-    const userDbId = dbUser.id;
 
     // Get YouTube sources to sync
     const where: any = {
@@ -72,7 +68,7 @@ export async function POST(request: NextRequest) {
       // If no specific source, get sources the user follows
       where.followers = {
         some: {
-          userId: userDbId,
+          userId: dbUser.id,
         },
       };
     }
@@ -111,8 +107,8 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Fetch videos from channel (pass user ID for user-specific API keys)
-        const videos = await getChannelVideos(channelId, maxVideos, userDbId);
+        // Fetch videos from channel
+        const videos = await getChannelVideos(channelId, maxVideos);
 
         // Store videos in database
         for (const video of videos) {
@@ -163,11 +159,7 @@ export async function POST(request: NextRequest) {
         // Optionally sync playlists
         if (includePlaylists) {
           try {
-            const playlists = await getChannelPlaylists(
-              channelId,
-              50,
-              userDbId
-            );
+            const playlists = await getChannelPlaylists(channelId);
 
             for (const playlist of playlists) {
               const existingPlaylist = await prisma.playlist.findFirst({

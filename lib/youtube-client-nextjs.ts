@@ -5,11 +5,7 @@ import {
   getMidnightPST,
   createCachedYouTubeFunction,
   createCacheKey,
-  getUserQuotaStatus,
-  logUserQuotaUsage,
 } from "./youtube-cache-nextjs";
-import { prisma } from "@/lib/prisma";
-import { decrypt } from "@/lib/encryption";
 
 export class QuotaExhaustedError extends Error {
   public resetAt: Date;
@@ -35,31 +31,13 @@ export class YouTubeClientManager {
   private primaryKey: string;
   private backupKey: string | null;
   private usingBackupKey: boolean = false;
-  private userId: string | null = null;
-  private isUserKeys: boolean = false;
 
-  constructor(options?: {
-    userId?: string;
-    primaryKey?: string;
-    backupKey?: string;
-  }) {
-    if (options?.userId && options?.primaryKey) {
-      // User-provided keys
-      this.userId = options.userId;
-      this.primaryKey = options.primaryKey;
-      this.backupKey = options.backupKey || null;
-      this.isUserKeys = true;
-    } else {
-      // System keys from environment variables
-      this.primaryKey = process.env.YOUTUBE_API_KEY || "";
-      this.backupKey = process.env.YOUTUBE_BACKUP_KEY || null;
-      this.isUserKeys = false;
+  constructor() {
+    this.primaryKey = process.env.YOUTUBE_API_KEY || "";
+    this.backupKey = process.env.YOUTUBE_BACKUP_KEY || null;
 
-      if (!this.primaryKey) {
-        throw new Error(
-          "YOUTUBE_API_KEY environment variable is not configured"
-        );
-      }
+    if (!this.primaryKey) {
+      throw new Error("YOUTUBE_API_KEY environment variable is not configured");
     }
   }
 
@@ -105,18 +83,16 @@ export class YouTubeClientManager {
   }
 
   async checkQuotaBeforeRequest(): Promise<void> {
-    // Use user-specific quota if this is a user's API key
-    const status =
-      this.isUserKeys && this.userId
-        ? await getUserQuotaStatus(this.userId)
-        : await getQuotaStatus();
+    const status = await getQuotaStatus();
 
     if (status.primary.isExhausted && !this.usingBackupKey) {
       if (this.backupKey && !status.backup.isExhausted) {
         console.log("[YouTube API] Primary key exhausted, switching to backup");
         this.usingBackupKey = true;
       } else if (!this.backupKey || status.backup.isExhausted) {
-        const resetAt = getMidnightPST();
+        const resetAt = status.primary.resetAt
+          ? new Date(status.primary.resetAt)
+          : getMidnightPST();
         throw new QuotaExhaustedError(
           "YouTube API quota exceeded. Please try again after midnight PST.",
           resetAt
@@ -167,22 +143,14 @@ export class YouTubeClientManager {
       const apiKey = this.getCurrentApiKey();
       const result = await operation(apiKey);
 
-      // Log successful request (user-specific or system-wide)
-      if (this.isUserKeys && this.userId) {
-        await logUserQuotaUsage(this.userId, keyType, true, false);
-      } else {
-        await logQuotaUsage(keyType, true, false);
-      }
+      // Log successful request
+      await logQuotaUsage(keyType, true, false);
 
       return result;
     } catch (error) {
       if (this.isQuotaExceededError(error)) {
         // Log quota exhaustion
-        if (this.isUserKeys && this.userId) {
-          await logUserQuotaUsage(this.userId, keyType, false, true);
-        } else {
-          await logQuotaUsage(keyType, false, true);
-        }
+        await logQuotaUsage(keyType, false, true);
 
         // Try backup key if not already using it
         if (!this.usingBackupKey && this.backupKey) {
@@ -196,11 +164,7 @@ export class YouTubeClientManager {
             const result = await operation(apiKey);
 
             // Log successful backup request
-            if (this.isUserKeys && this.userId) {
-              await logUserQuotaUsage(this.userId, "backup", true, false);
-            } else {
-              await logQuotaUsage("backup", true, false);
-            }
+            await logQuotaUsage("backup", true, false);
 
             console.log(
               "[YouTube API] Successfully completed request using backup key"
@@ -208,11 +172,7 @@ export class YouTubeClientManager {
             return result;
           } catch (backupError) {
             if (this.isQuotaExceededError(backupError)) {
-              if (this.isUserKeys && this.userId) {
-                await logUserQuotaUsage(this.userId, "backup", false, true);
-              } else {
-                await logQuotaUsage("backup", false, true);
-              }
+              await logQuotaUsage("backup", false, true);
               console.error("[YouTube API] Both keys have exceeded quota");
 
               const resetAt = getMidnightPST();
@@ -222,11 +182,7 @@ export class YouTubeClientManager {
               );
             }
 
-            if (this.isUserKeys && this.userId) {
-              await logUserQuotaUsage(this.userId, "backup", false, false);
-            } else {
-              await logQuotaUsage("backup", false, false);
-            }
+            await logQuotaUsage("backup", false, false);
             throw backupError;
           }
         }
@@ -240,11 +196,7 @@ export class YouTubeClientManager {
       }
 
       // Log other errors
-      if (this.isUserKeys && this.userId) {
-        await logUserQuotaUsage(this.userId, keyType, false, false);
-      } else {
-        await logQuotaUsage(keyType, false, false);
-      }
+      await logQuotaUsage(keyType, false, false);
       throw error;
     }
   }
@@ -267,52 +219,6 @@ export class YouTubeClientManager {
 
 export const youtubeClientManager = new YouTubeClientManager();
 
-/**
- * Create a YouTube client manager for a specific user
- * Will use user's API keys if available, otherwise falls back to system keys
- */
-export async function createUserYouTubeClient(
-  userId: string
-): Promise<YouTubeClientManager> {
-  // Check if feature flag is enabled
-  const userKeysEnabled = process.env.ENABLE_USER_API_KEYS === "true";
-
-  if (!userKeysEnabled) {
-    // Feature disabled - use system keys
-    return youtubeClientManager;
-  }
-
-  try {
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        youtubeApiKey: true,
-        youtubeApiKeyBackup: true,
-      },
-    });
-
-    // If user has their own API keys, create a client with them
-    if (user?.youtubeApiKey) {
-      const primaryKey = decrypt(user.youtubeApiKey);
-      const backupKey = user.youtubeApiKeyBackup
-        ? decrypt(user.youtubeApiKeyBackup)
-        : undefined;
-
-      return new YouTubeClientManager({
-        userId,
-        primaryKey,
-        backupKey,
-      });
-    }
-  } catch (error) {
-    console.error("[YouTube Client] Error loading user API keys:", error);
-  }
-
-  // Fall back to system keys
-  return youtubeClientManager;
-}
-
 export async function executeYouTubeOperation<T>(
   operation: (apiKey: string) => Promise<T>,
   operationType: string,
@@ -320,19 +226,9 @@ export async function executeYouTubeOperation<T>(
   options: {
     useCache?: boolean;
     revalidate?: number;
-    userId?: string; // Optional user ID to use user-specific API keys
   } = {}
 ): Promise<T> {
-  // Get the appropriate client manager
-  let clientManager: YouTubeClientManager;
-
-  if (options.userId) {
-    clientManager = await createUserYouTubeClient(options.userId);
-  } else {
-    clientManager = youtubeClientManager;
-  }
-
-  return clientManager.executeWithFallback(
+  return youtubeClientManager.executeWithFallback(
     operation,
     operationType,
     params,
