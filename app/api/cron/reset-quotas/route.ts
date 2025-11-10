@@ -29,20 +29,33 @@ export async function POST(request: NextRequest) {
 
     console.log("[Cron] Starting quota reset job...");
 
-    // Reset all user quotas
-    const result = await prisma.user.updateMany({
+    // Get all users with API keys
+    const usersWithKeys = await prisma.user.findMany({
       where: {
-        youtubeApiKey: {
-          not: null,
+        NOT: {
+          youtubeApiKey: null,
         },
       },
-      data: {
-        apiKeyQuotaStatus: {
-          primary: { requestsToday: 0, isExhausted: false },
-          backup: { requestsToday: 0, isExhausted: false },
-        },
+      select: {
+        id: true,
       },
     });
+
+    // Reset quota for each user
+    const resetPromises = usersWithKeys.map((user) =>
+      prisma.user.update({
+        where: { id: user.id },
+        data: {
+          apiKeyQuotaStatus: {
+            primary: { requestsToday: 0, isExhausted: false },
+            backup: { requestsToday: 0, isExhausted: false },
+          },
+        },
+      })
+    );
+
+    await Promise.all(resetPromises);
+    const result = { count: usersWithKeys.length };
 
     console.log(`[Cron] Reset quota for ${result.count} users`);
 
@@ -84,8 +97,8 @@ export async function GET(request: NextRequest) {
     // Count users with API keys configured
     const usersWithKeys = await prisma.user.count({
       where: {
-        youtubeApiKey: {
-          not: null,
+        NOT: {
+          youtubeApiKey: null,
         },
       },
     });
@@ -93,8 +106,8 @@ export async function GET(request: NextRequest) {
     // Get users with exhausted quotas
     const users = await prisma.user.findMany({
       where: {
-        youtubeApiKey: {
-          not: null,
+        NOT: {
+          youtubeApiKey: null,
         },
       },
       select: {
