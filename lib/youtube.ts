@@ -134,7 +134,8 @@ async function getChannelIdFromUsername(
  * Get channel information by channel ID
  */
 export async function getChannelInfo(
-  channelId: string
+  channelId: string,
+  userId?: string
 ): Promise<YouTubeChannel | null> {
   try {
     const params = { channelId };
@@ -148,7 +149,7 @@ export async function getChannelInfo(
       },
       "channels.info",
       params,
-      { revalidate: 86400 } // 24 hours
+      { revalidate: 86400, userId } // 24 hours
     );
 
     const channel = response.data.items?.[0];
@@ -175,7 +176,8 @@ export async function getChannelInfo(
  */
 export async function getChannelVideos(
   channelId: string,
-  maxResults: number = 50
+  maxResults: number = 50,
+  userId?: string
 ): Promise<YouTubeVideo[]> {
   try {
     const channelParams = { channelId };
@@ -189,7 +191,7 @@ export async function getChannelVideos(
       },
       "channels.contentDetails",
       channelParams,
-      { revalidate: 86400 } // 24 hours
+      { revalidate: 86400, userId } // 24 hours
     );
 
     const uploadsPlaylistId =
@@ -213,7 +215,7 @@ export async function getChannelVideos(
       },
       "playlistItems.list",
       playlistParams,
-      { revalidate: 1800 } // 30 minutes
+      { revalidate: 1800, userId } // 30 minutes
     );
 
     const videos: YouTubeVideo[] = [];
@@ -246,7 +248,8 @@ export async function getChannelVideos(
  */
 export async function getChannelPlaylists(
   channelId: string,
-  maxResults: number = 50
+  maxResults: number = 50,
+  userId?: string
 ): Promise<YouTubePlaylist[]> {
   try {
     const params = { channelId, maxResults };
@@ -261,7 +264,7 @@ export async function getChannelPlaylists(
       },
       "playlists.list",
       params,
-      { revalidate: 7200 } // 2 hours
+      { revalidate: 7200, userId } // 2 hours
     );
 
     const playlists: YouTubePlaylist[] = [];
@@ -294,7 +297,8 @@ export async function getChannelPlaylists(
  */
 export async function getPlaylistVideos(
   playlistId: string,
-  maxResults: number = 50
+  maxResults: number = 50,
+  userId?: string
 ): Promise<YouTubeVideo[]> {
   try {
     const params = { playlistId, maxResults };
@@ -309,7 +313,7 @@ export async function getPlaylistVideos(
       },
       "playlistItems.videos",
       params,
-      { revalidate: 3600 } // 1 hour
+      { revalidate: 3600, userId } // 1 hour
     );
 
     const videos: YouTubeVideo[] = [];

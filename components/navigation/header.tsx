@@ -1,6 +1,6 @@
 "use client";
 
-import { Layers, Library, Shield, Heart } from "lucide-react";
+import { Layers, Library, Shield, Heart, Settings } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +66,12 @@ export function Header() {
                 <Button variant="outline" size="sm">
                   <Heart className="mr-2 h-4 w-4" />
                   Favorites
+                </Button>
+              </Link>
+              <Link href="/profile">
+                <Button variant="outline" size="sm">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
                 </Button>
               </Link>
               {isAdmin && (
