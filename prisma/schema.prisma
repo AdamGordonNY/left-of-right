@@ -15,18 +15,24 @@ datasource db {
 }
 
 model User {
-  id        String       @id @default(cuid())
-  clerkId   String       @unique
-  email     String       @unique
-  firstName String?
-  lastName  String?
-  imageUrl  String?
-  role      String       @default("member")
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  sources   Source[]
-  follows   UserFollow[]
-  favorites Favorite[]
+  id                  String       @id @default(cuid())
+  clerkId             String       @unique
+  email               String       @unique
+  firstName           String?
+  lastName            String?
+  imageUrl            String?
+  role                String       @default("member")
+  // YouTube API Key Management
+  youtubeApiKey       String? // Encrypted API key
+  youtubeApiKeyBackup String? // Encrypted backup API key
+  apiKeyCreatedAt     DateTime?
+  apiKeyLastUsed      DateTime?
+  apiKeyQuotaStatus   Json? // { primary: { requestsToday: 0, isExhausted: false }, backup: { ... } }
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  sources             Source[]
+  follows             UserFollow[]
+  favorites           Favorite[]
 
   @@index([clerkId])
   @@index([email])
