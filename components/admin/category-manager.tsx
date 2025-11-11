@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Tag } from "lucide-react";
+import { Plus, Edit, Trash2, Tag, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { CategorySourcesDialog } from "@/components/admin/category-sources-dialog";
 import type { Category } from "@prisma/client";
 
 interface CategoryWithCount extends Category {
@@ -27,6 +28,10 @@ export function CategoryManager() {
   const [categories, setCategories] = useState<CategoryWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSourcesDialogOpen, setIsSourcesDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  );
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -140,6 +145,11 @@ export function CategoryManager() {
     setIsDialogOpen(true);
   };
 
+  const handleManageSources = (category: Category) => {
+    setSelectedCategory(category);
+    setIsSourcesDialogOpen(true);
+  };
+
   const resetForm = () => {
     setEditingCategory(null);
     setFormData({
@@ -187,7 +197,7 @@ export function CategoryManager() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {categories.map((category) => (
-          <Card key={category.id}>
+          <Card key={category.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
@@ -202,6 +212,7 @@ export function CategoryManager() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleEdit(category)}
+                    title="Edit category"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -209,6 +220,7 @@ export function CategoryManager() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDelete(category.id)}
+                    title="Delete category"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -219,7 +231,7 @@ export function CategoryManager() {
               <p className="text-sm text-muted-foreground mb-2">
                 {category.description || "No description"}
               </p>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-3">
                 <Badge variant="secondary">
                   <Tag className="mr-1 h-3 w-3" />
                   {category.slug}
@@ -230,6 +242,15 @@ export function CategoryManager() {
                   </span>
                 )}
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => handleManageSources(category)}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Manage Sources
+              </Button>
             </CardContent>
           </Card>
         ))}
@@ -340,6 +361,13 @@ export function CategoryManager() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <CategorySourcesDialog
+        category={selectedCategory}
+        open={isSourcesDialogOpen}
+        onOpenChange={setIsSourcesDialogOpen}
+        onUpdate={loadCategories}
+      />
     </div>
   );
 }

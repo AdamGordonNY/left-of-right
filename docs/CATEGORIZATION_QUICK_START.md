@@ -5,18 +5,22 @@
 ### Option 1: Edit Existing Source (Recommended)
 
 1. **Navigate to Admin Sources**
+
    - Go to `/admin/sources` (for global sources)
    - Or go to `/my-sources` (for personal sources)
 
 2. **Click Edit on Any Source**
+
    - Find the source you want to categorize
    - Click the "Edit" button
 
 3. **Scroll to Categories Section**
+
    - Look for the "Categories" label
    - You'll see any existing categories as colored badges
 
 4. **Add Categories**
+
    - Click the "+ Add Category" button
    - A dropdown will appear with all available categories
    - Use the search box to filter categories
@@ -24,6 +28,7 @@
    - The category will appear as a badge immediately
 
 5. **Remove Categories**
+
    - Click the "X" button on any category badge
    - The category will be removed immediately
 
@@ -35,6 +40,7 @@
 ### Option 2: New Source
 
 1. **Create the Source First**
+
    - Click "Add Source"
    - Fill in all source details
    - Click "Add Source" button
@@ -48,6 +54,7 @@
 ## Available Categories
 
 ### By Topic
+
 - **News** - Current events and breaking news coverage
 - **Politics** - Political commentary and analysis
 - **Science** - Scientific research and discoveries
@@ -58,10 +65,12 @@
 - **Comedy** - Comedy and satirical content
 
 ### By Location
+
 - **Foreign** - International and foreign affairs
 - **Domestic** - Domestic and local affairs
 
 ### By Perspective
+
 - **Leans Left** - Content with a left-leaning perspective
 - **Leans Right** - Content with a right-leaning perspective
 - **Center** - Centrist or balanced perspective
@@ -81,26 +90,31 @@
 ## Examples
 
 **CNN Source**:
+
 - News
 - Politics
 - Domestic
 - Leans Left
 
 **BBC News**:
+
 - News
 - Foreign
 - Center
 
 **MKBHD (Tech YouTube)**:
+
 - Tech
 - Entertainment
 
 **The Daily Show**:
+
 - Comedy
 - Politics
 - Leans Left
 
 **WSJ**:
+
 - News
 - Business
 - Center
@@ -108,19 +122,23 @@
 ## Troubleshooting
 
 **"Cannot find Categories section"**
+
 - Make sure you're editing the source (not just viewing)
 - The Categories section is between Avatar URL and Active Status
 
 **"+ Add Category button doesn't work"**
+
 - Make sure you have permission to edit this source
 - Check that you're the owner or an admin
 
 **"Categories don't save"**
+
 - Check your network connection
 - Look for error toast notifications
 - Try refreshing the page
 
 **"I want to create new categories"**
+
 - Only admins can create new categories
 - Go to `/admin` → Categories tab
 - Click "Add Category"
@@ -128,6 +146,7 @@
 ## Next Steps
 
 After categorizing your sources:
+
 1. Visit `/categories` to browse all categories
 2. Click on a category to see all sources in that category
 3. Use categories to filter and organize your content

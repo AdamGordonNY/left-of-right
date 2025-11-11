@@ -20,6 +20,30 @@ export async function getCategoryById(id: string): Promise<Category | null> {
 }
 
 /**
+ * Get a category by ID with sources
+ */
+export async function getCategoryByIdWithSources(id: string) {
+  return prisma.category.findUnique({
+    where: { id },
+    include: {
+      sources: {
+        include: {
+          source: {
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              avatarUrl: true,
+              isGlobal: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+/**
  * Get a category by slug
  */
 export async function getCategoryBySlug(

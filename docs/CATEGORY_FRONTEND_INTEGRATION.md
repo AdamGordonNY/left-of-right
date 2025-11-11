@@ -5,6 +5,7 @@ This document explains how categories are integrated into the source management 
 ## Overview
 
 Sources can now be categorized when being created or edited. This helps organize sources by:
+
 - **Topic**: News, Politics, Science, Entertainment, Tech, Business, History, Comedy
 - **Geographic Scope**: Foreign, Domestic
 - **Political Perspective**: Leans Left, Leans Right, Center
@@ -16,6 +17,7 @@ Sources can now be categorized when being created or edited. This helps organize
 **Location**: `/components/sources/edit-source-dialog.tsx`
 
 **Features**:
+
 - Shows a "Categories" section with CategorySelector component
 - Displays currently assigned categories as color-coded badges
 - Allows adding/removing categories via dropdown
@@ -23,17 +25,19 @@ Sources can now be categorized when being created or edited. This helps organize
 - Available for both admin editing global sources and users editing personal sources
 
 **Usage**:
+
 ```tsx
-<EditSourceDialog 
+<EditSourceDialog
   source={{
     ...source,
-    categories: source.categories.map(sc => sc.category)
-  }} 
-  isAdmin={true} 
+    categories: source.categories.map((sc) => sc.category),
+  }}
+  isAdmin={true}
 />
 ```
 
 **Screenshot Flow**:
+
 1. Click "Edit" on any source
 2. Scroll to "Categories" section
 3. Click "+ Add Category" to open dropdown
@@ -46,16 +50,19 @@ Sources can now be categorized when being created or edited. This helps organize
 **Location**: `/components/sources/add-source-dialog.tsx`
 
 **Current Behavior**:
+
 - Categories cannot be assigned during initial source creation
 - After a source is created, a toast message reminds users they can add categories by editing the source
 - This is because the CategorySelector requires an existing source ID to function
 
 **Future Enhancement** (Optional):
+
 - Could add a two-step wizard:
   1. Step 1: Create source (name, URL, etc.)
   2. Step 2: Assign categories (after source is created)
 
 **Toast Message**:
+
 ```
 "Source added successfully. You can now add categories by editing the source."
 ```
@@ -65,11 +72,13 @@ Sources can now be categorized when being created or edited. This helps organize
 **Location**: `/app/admin/sources/page.tsx`
 
 **Changes**:
+
 - Updated Prisma query to include categories relation
 - Maps junction table to flat category array for EditSourceDialog
 - Each source card shows edit button that opens dialog with categories
 
 **Data Structure**:
+
 ```typescript
 const sources = await prisma.source.findMany({
   // ... other options
@@ -97,15 +106,17 @@ source={{
 **Location**: `/components/sources/category-selector.tsx`
 
 **Props**:
+
 ```typescript
 interface CategorySelectorProps {
-  sourceId: string;              // Required: The source being categorized
+  sourceId: string; // Required: The source being categorized
   selectedCategories?: Category[]; // Optional: Pre-selected categories
-  onUpdate?: () => void;          // Optional: Callback after changes
+  onUpdate?: () => void; // Optional: Callback after changes
 }
 ```
 
 **Features**:
+
 - Loads all available categories from API
 - Displays selected categories as color-coded badges with X buttons
 - Popover dropdown for adding new categories
@@ -116,6 +127,7 @@ interface CategorySelectorProps {
 - Toast notifications for success/error
 
 **Example Usage**:
+
 ```tsx
 <CategorySelector
   sourceId={source.id}
@@ -127,12 +139,14 @@ interface CategorySelectorProps {
 ## API Integration
 
 ### Fetch All Categories
+
 ```
 GET /api/categories
 Response: { categories: Category[] }
 ```
 
 ### Add Category to Source
+
 ```
 POST /api/sources/{sourceId}/categories
 Body: { categoryId: string }
@@ -140,12 +154,14 @@ Response: { success: true }
 ```
 
 ### Remove Category from Source
+
 ```
 DELETE /api/sources/{sourceId}/categories/{categoryId}
 Response: { success: true }
 ```
 
 ### Get Source with Categories
+
 ```
 GET /api/sources/{sourceId}
 Response includes: categories: [{ category: Category }]
@@ -154,6 +170,7 @@ Response includes: categories: [{ category: Category }]
 ## User Flows
 
 ### Admin Creating Global Source
+
 1. Go to `/admin` or `/admin/sources`
 2. Click "Add Source"
 3. Fill in source details
@@ -169,6 +186,7 @@ Response includes: categories: [{ category: Category }]
 13. Close dialog
 
 ### User Editing Personal Source
+
 1. Go to `/my-sources`
 2. Find a source you created
 3. Click on source to view details (implementation varies)
@@ -176,6 +194,7 @@ Response includes: categories: [{ category: Category }]
 5. Add/remove categories as needed
 
 ### Admin Editing Any Source
+
 1. Go to `/admin/sources`
 2. Click "Edit" on any global source
 3. Modify categories using CategorySelector
@@ -185,17 +204,20 @@ Response includes: categories: [{ category: Category }]
 ## Permissions
 
 **Who Can Categorize**:
+
 - ✅ Source owner can categorize their own sources
 - ✅ Admins can categorize any source (global or personal)
 - ❌ Regular users cannot categorize sources they don't own
 
 **Enforced At**:
+
 - API level: `/api/sources/[id]/categories` endpoints check ownership
 - UI level: EditSourceDialog only appears where user has permission
 
 ## Visual Design
 
 ### Category Badges
+
 - Color-coded using category.color (hex value)
 - Small colored dot indicator
 - Background uses alpha transparency: `${color}20`
@@ -204,6 +226,7 @@ Response includes: categories: [{ category: Category }]
 - Hover state on X button shows red color
 
 ### Category Dropdown
+
 - Searchable command palette interface
 - Category name with colored dot
 - Checkmark for selected categories
@@ -211,6 +234,7 @@ Response includes: categories: [{ category: Category }]
 - Max height with scroll for many categories
 
 ### Edit Dialog Layout
+
 ```
 ┌─────────────────────────────────┐
 │ Edit Source                     │
@@ -236,6 +260,7 @@ Response includes: categories: [{ category: Category }]
 ## Database Queries
 
 ### Fetch Source with Categories
+
 ```typescript
 const source = await prisma.source.findUnique({
   where: { id: sourceId },
@@ -251,11 +276,12 @@ const source = await prisma.source.findUnique({
 // Transform for UI:
 const sourceWithCategories = {
   ...source,
-  categories: source.categories.map(sc => sc.category),
+  categories: source.categories.map((sc) => sc.category),
 };
 ```
 
 ### Fetch All Sources with Categories (Admin)
+
 ```typescript
 const sources = await prisma.source.findMany({
   where: { isGlobal: true },
@@ -272,12 +298,14 @@ const sources = await prisma.source.findMany({
 ## Error Handling
 
 **Scenarios**:
+
 1. **Category already assigned**: API returns 400, toast shows error
 2. **Invalid category ID**: API returns 404
 3. **Permission denied**: API returns 403
 4. **Network error**: Toast shows "Failed to add/remove category"
 
 **User Experience**:
+
 - Loading states prevent double-clicks
 - Optimistic UI updates (category appears immediately)
 - Rollback on error (category removed if API fails)

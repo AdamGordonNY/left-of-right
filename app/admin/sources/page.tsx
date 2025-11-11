@@ -1,17 +1,17 @@
-import { redirect } from 'next/navigation';
-import { getUserRole, getUserId } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { Shield, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { AddSourceDialog } from '@/components/sources/add-source-dialog';
-import { EditSourceDialog } from '@/components/sources/edit-source-dialog';
-import { DeleteSourceDialog } from '@/components/sources/delete-source-dialog';
+import { redirect } from "next/navigation";
+import { getUserRole, getUserId } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { Shield, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { AddSourceDialog } from "@/components/sources/add-source-dialog";
+import { EditSourceDialog } from "@/components/sources/edit-source-dialog";
+import { DeleteSourceDialog } from "@/components/sources/delete-source-dialog";
 
 async function getGlobalSources() {
   return prisma.source.findMany({
     where: { isGlobal: true },
-    orderBy: { name: 'asc' },
+    orderBy: { name: "asc" },
     select: {
       id: true,
       name: true,
@@ -36,8 +36,8 @@ async function getGlobalSources() {
 export default async function AdminSourcesPage() {
   const role = await getUserRole();
 
-  if (role !== 'admin') {
-    redirect('/');
+  if (role !== "admin") {
+    redirect("/");
   }
 
   const sources = await getGlobalSources();
@@ -89,7 +89,8 @@ export default async function AdminSourcesPage() {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Showing {sources.length} global {sources.length === 1 ? 'source' : 'sources'}
+              Showing {sources.length} global{" "}
+              {sources.length === 1 ? "source" : "sources"}
             </p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sources.map((source) => (
@@ -99,20 +100,27 @@ export default async function AdminSourcesPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-foreground">{source.name}</h3>
+                      <h3 className="font-semibold text-foreground">
+                        {source.name}
+                      </h3>
                       <p className="text-sm text-muted-foreground capitalize mt-1">
                         {source.type}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
-                      <EditSourceDialog 
+                      <EditSourceDialog
                         source={{
                           ...source,
-                          categories: source.categories.map(sc => sc.category)
-                        }} 
-                        isAdmin={true} 
+                          categories: source.categories.map(
+                            (sc) => sc.category
+                          ),
+                        }}
+                        isAdmin={true}
                       />
-                      <DeleteSourceDialog sourceId={source.id} sourceName={source.name} />
+                      <DeleteSourceDialog
+                        sourceId={source.id}
+                        sourceName={source.name}
+                      />
                     </div>
                   </div>
                   {source.description && (
@@ -132,11 +140,11 @@ export default async function AdminSourcesPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         source.isActive
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
                       }`}
                     >
-                      {source.isActive ? 'Active' : 'Inactive'}
+                      {source.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
                 </div>

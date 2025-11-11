@@ -192,9 +192,7 @@ export function EditSourceDialog({
                       <SelectItem value="substack">Substack Author</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    The type of content source
-                  </FormDescription>
+                  <FormDescription>The type of content source</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

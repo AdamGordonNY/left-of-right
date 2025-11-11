@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserRole } from "@/lib/auth";
 import {
   getCategoryById,
+  getCategoryByIdWithSources,
   updateCategory,
   deleteCategory,
 } from "@/lib/prisma-categories";
@@ -9,6 +10,7 @@ import {
 /**
  * GET /api/categories/[id]
  * Get a category by ID
+ * Query params: ?includeSources=true to include sources
  */
 export async function GET(
   request: NextRequest,
@@ -16,7 +18,12 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const category = await getCategoryById(id);
+    const { searchParams } = new URL(request.url);
+    const includeSources = searchParams.get("includeSources") === "true";
+
+    const category = includeSources
+      ? await getCategoryByIdWithSources(id)
+      : await getCategoryById(id);
 
     if (!category) {
       return NextResponse.json(
