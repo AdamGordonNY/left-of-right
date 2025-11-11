@@ -113,6 +113,7 @@ export function ContentItemCard({
             videoUrl={item.url}
             title={item.title}
             description={item.description || undefined}
+            contentItemId={item.id}
           />
         )}
       </>
@@ -191,6 +192,7 @@ export function ContentItemCard({
           videoUrl={item.url}
           title={item.title}
           description={item.description || undefined}
+          contentItemId={item.id}
         />
       )}
     </>

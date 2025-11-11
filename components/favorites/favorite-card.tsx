@@ -156,6 +156,7 @@ export function FavoriteCard({
           videoUrl={contentItem.url}
           title={contentItem.title}
           description={contentItem.description || undefined}
+          contentItemId={contentItem.id}
         />
       )}
 
