@@ -3,6 +3,43 @@ import { getUserRole } from "@/lib/auth";
 import { createSource } from "@/lib/prisma-sources";
 import { ensureUserExists } from "@/lib/user-sync";
 import { getChannelIdFromUrl, getChannelInfo } from "@/lib/youtube";
+import { prisma } from "@/lib/prisma";
+
+/**
+ * GET /api/sources
+ * Get all sources (for admin category management)
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const userRole = await getUserRole();
+    
+    // Only admins can list all sources
+    if (userRole !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const sources = await prisma.source.findMany({
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        avatarUrl: true,
+        isGlobal: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return NextResponse.json({ sources });
+  } catch (error) {
+    console.error("Error fetching sources:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch sources" },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

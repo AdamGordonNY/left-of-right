@@ -7,11 +7,13 @@ Added the ability to manage source assignments to categories from the admin Cate
 ## What Was Built
 
 ### 1. CategorySourcesDialog Component
+
 **File**: `/components/admin/category-sources-dialog.tsx`
 
 A comprehensive dialog for managing which sources belong to a category:
 
 **Features**:
+
 - Displays all available sources in the system
 - Shows currently assigned sources with visual indicators
 - Search functionality to filter sources
@@ -23,6 +25,7 @@ A comprehensive dialog for managing which sources belong to a category:
 - Global/Personal badge for sources
 
 **UI Elements**:
+
 - Search input for filtering
 - Scrollable list of sources
 - Assign/Assigned buttons with check icons
@@ -30,9 +33,11 @@ A comprehensive dialog for managing which sources belong to a category:
 - Toast notifications for success/error
 
 ### 2. Updated CategoryManager Component
+
 **File**: `/components/admin/category-manager.tsx`
 
 **Changes**:
+
 - Added "Manage Sources" button to each category card
 - Imported `CategorySourcesDialog` component
 - Added state for managing the sources dialog
@@ -41,6 +46,7 @@ A comprehensive dialog for managing which sources belong to a category:
 - Improved visual design with hover effects
 
 **New UI**:
+
 ```
 Each category card now has:
 - Edit icon button (top right)
@@ -49,19 +55,23 @@ Each category card now has:
 ```
 
 ### 3. Enhanced API Endpoint
+
 **File**: `/app/api/categories/[id]/route.ts`
 
 **Changes**:
+
 - Added query parameter `?includeSources=true`
 - Returns category with related sources when requested
 - Uses new helper function `getCategoryByIdWithSources`
 
 ### 4. New Prisma Helper Function
+
 **File**: `/lib/prisma-categories.ts`
 
 **New Function**: `getCategoryByIdWithSources(id: string)`
 
 Returns a category with all its assigned sources including:
+
 - Source ID, name, type
 - Avatar URL
 - Is global status
@@ -71,26 +81,31 @@ Returns a category with all its assigned sources including:
 ### Admin Workflow
 
 1. **Navigate to Categories**
+
    - Go to `/admin`
    - Click on "Categories" tab
 
 2. **Select Category**
+
    - Find the category to manage
    - Click "Manage Sources" button on the category card
 
 3. **View Sources**
+
    - Dialog opens showing all sources
    - Already assigned sources show "Assigned" button
    - Unassigned sources show "Assign" button
    - Search box allows filtering by source name
 
 4. **Assign Sources**
+
    - Click "Assign" on any source
    - Source immediately moves to assigned state
    - Toast confirmation appears
    - Category count updates automatically
 
 5. **Unassign Sources**
+
    - Click "Assigned" on assigned sources
    - Source returns to unassigned state
    - Toast confirmation appears
@@ -103,6 +118,7 @@ Returns a category with all its assigned sources including:
 ## API Integration
 
 ### Get Category with Sources
+
 ```
 GET /api/categories/{id}?includeSources=true
 
@@ -129,6 +145,7 @@ Response:
 ```
 
 ### Assign Source to Category
+
 ```
 POST /api/sources/{sourceId}/categories
 Body: { categoryId: string }
@@ -138,6 +155,7 @@ Response:
 ```
 
 ### Unassign Source from Category
+
 ```
 DELETE /api/sources/{sourceId}/categories/{categoryId}
 
@@ -148,18 +166,21 @@ Response:
 ## Technical Details
 
 ### State Management
+
 - Uses React `useState` for local state
 - Uses `Set<string>` for tracking assigned source IDs
 - Optimistic UI updates (immediate visual feedback)
 - Automatic rollback on API errors
 
 ### Performance
+
 - Loads all sources once on dialog open
 - Fetches assigned sources separately
 - No pagination needed (assuming reasonable source count)
 - Efficient Set operations for lookups
 
 ### Error Handling
+
 - Try/catch blocks for all API calls
 - Toast notifications for errors
 - Loading states prevent race conditions
@@ -168,18 +189,21 @@ Response:
 ## UI/UX Features
 
 ### Visual Indicators
+
 - **Assigned sources**: Blue primary button with check icon
 - **Unassigned sources**: Outline button
 - **Loading**: Spinner icon on button
 - **Color coding**: Category color dot in header
 
 ### Responsive Design
+
 - Dialog max height: 80vh
 - Scrollable content area
 - Maintains header and footer visibility
 - Works on mobile and desktop
 
 ### Search
+
 - Real-time filtering
 - Case-insensitive matching
 - Searches source names
@@ -233,6 +257,7 @@ Response:
 The category source assignment feature provides a streamlined interface for administrators to manage which sources belong to each category. The implementation uses modern React patterns, provides excellent UX with immediate feedback, and integrates seamlessly with the existing category management system.
 
 Key benefits:
+
 - **Efficient**: Manage all sources for a category in one place
 - **Visual**: Clear indication of assignment status
 - **Fast**: Immediate updates with optimistic UI
