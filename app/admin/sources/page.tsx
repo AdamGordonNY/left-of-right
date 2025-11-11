@@ -24,6 +24,11 @@ async function getGlobalSources() {
       createdByUserId: true,
       createdAt: true,
       updatedAt: true,
+      categories: {
+        select: {
+          category: true,
+        },
+      },
     },
   });
 }
@@ -100,7 +105,13 @@ export default async function AdminSourcesPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
-                      <EditSourceDialog source={source} isAdmin={true} />
+                      <EditSourceDialog 
+                        source={{
+                          ...source,
+                          categories: source.categories.map(sc => sc.category)
+                        }} 
+                        isAdmin={true} 
+                      />
                       <DeleteSourceDialog sourceId={source.id} sourceName={source.name} />
                     </div>
                   </div>

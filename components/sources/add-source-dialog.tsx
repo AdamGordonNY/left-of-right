@@ -110,8 +110,8 @@ export function AddSourceDialog({ isAdmin }: AddSourceDialogProps) {
 
       toast.success(
         values.isGlobal && isAdmin
-          ? "Global source added successfully"
-          : "Personal source added successfully"
+          ? "Global source added successfully. You can now add categories by editing the source."
+          : "Personal source added successfully. You can now add categories by editing the source."
       );
 
       form.reset();

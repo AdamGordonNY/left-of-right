@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Pencil } from "lucide-react";
+import { CategorySelector } from "@/components/sources/category-selector";
+import type { Category } from "@prisma/client";
 import {
   Dialog,
   DialogContent,
@@ -58,6 +60,7 @@ interface EditSourceDialogProps {
     avatarUrl?: string | null;
     isActive: boolean;
     isGlobal: boolean;
+    categories?: Category[];
   };
   isAdmin: boolean;
   trigger?: React.ReactNode;
@@ -254,6 +257,19 @@ export function EditSourceDialog({
                 </FormItem>
               )}
             />
+
+            {/* Categories Section */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Categories</label>
+              <p className="text-sm text-muted-foreground">
+                Organize this source by topic, location, or perspective
+              </p>
+              <CategorySelector
+                sourceId={source.id}
+                selectedCategories={source.categories || []}
+                onUpdate={() => router.refresh()}
+              />
+            </div>
 
             <FormField
               control={form.control}
