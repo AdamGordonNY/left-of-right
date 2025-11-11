@@ -1,6 +1,6 @@
 "use client";
 
-import { Layers, Library, Shield, Heart, Settings } from "lucide-react";
+import { Layers, Library, Shield, Heart, Settings, Tag } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +55,12 @@ export function Header() {
             </div>
           </Link>
           <div className="flex items-center gap-3">
+            <Link href="/categories">
+              <Button variant="outline" size="sm">
+                <Tag className="mr-2 h-4 w-4" />
+                Categories
+              </Button>
+            </Link>
             <SignedIn>
               <Link href="/my-sources">
                 <Button variant="outline" size="sm">

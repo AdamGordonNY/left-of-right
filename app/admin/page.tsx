@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getUserRole } from "@/lib/auth";
 import { Shield } from "lucide-react";
 import { AddSourceDialog } from "@/components/sources/add-source-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CategoryManager } from "@/components/admin/category-manager";
 
 export default async function AdminPage() {
   const role = await getUserRole();
@@ -34,63 +36,82 @@ export default async function AdminPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-foreground">
-              Global Sources
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Manage sources that are available to all users
-            </p>
-            <div className="mt-4">
-              <a
-                href="/admin/sources"
-                className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                View all sources →
-              </a>
-            </div>
-          </div>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="categories">Categories</TabsTrigger>
+          </TabsList>
 
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-foreground">
-              User Management
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Manage user roles and permissions
-            </p>
-            <div className="mt-4">
-              <span className="text-sm text-muted-foreground">Coming soon</span>
-            </div>
-          </div>
+          <TabsContent value="overview" className="mt-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-lg border bg-card p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Global Sources
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Manage sources that are available to all users
+                </p>
+                <div className="mt-4">
+                  <a
+                    href="/admin/sources"
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    View all sources →
+                  </a>
+                </div>
+              </div>
 
-          <div className="rounded-lg border bg-card p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-foreground">Analytics</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              View platform usage and engagement metrics
-            </p>
-            <div className="mt-4">
-              <span className="text-sm text-muted-foreground">Coming soon</span>
-            </div>
-          </div>
-        </div>
+              <div className="rounded-lg border bg-card p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-foreground">
+                  User Management
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Manage user roles and permissions
+                </p>
+                <div className="mt-4">
+                  <span className="text-sm text-muted-foreground">
+                    Coming soon
+                  </span>
+                </div>
+              </div>
 
-        <div className="mt-8 rounded-lg border bg-card p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-foreground mb-4">
-            Quick Actions
-          </h2>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Use the "Add Source" button above to create new global sources
-              that will be available to all users on the platform.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Global sources appear automatically in all users' content feeds
-              and can be followed by individual users for personalized
-              filtering.
-            </p>
-          </div>
-        </div>
+              <div className="rounded-lg border bg-card p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Analytics
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  View platform usage and engagement metrics
+                </p>
+                <div className="mt-4">
+                  <span className="text-sm text-muted-foreground">
+                    Coming soon
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 rounded-lg border bg-card p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-foreground mb-4">
+                Quick Actions
+              </h2>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Use the "Add Source" button above to create new global sources
+                  that will be available to all users on the platform.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Global sources appear automatically in all users' content
+                  feeds and can be followed by individual users for personalized
+                  filtering.
+                </p>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="categories" className="mt-6">
+            <CategoryManager />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
