@@ -9,6 +9,7 @@ Added a flexible categorization system to organize sources by topics, themes, or
 ### New Models
 
 **Category**
+
 - `id`: Unique identifier
 - `name`: Category name (unique)
 - `slug`: URL-friendly slug (unique)
@@ -18,6 +19,7 @@ Added a flexible categorization system to organize sources by topics, themes, or
 - `createdAt`, `updatedAt`: Timestamps
 
 **SourceCategory** (Join table for many-to-many relationship)
+
 - `id`: Unique identifier
 - `sourceId`: Reference to Source
 - `categoryId`: Reference to Category
@@ -27,6 +29,7 @@ Added a flexible categorization system to organize sources by topics, themes, or
 ### Updated Models
 
 **Source**
+
 - Added `categories` relation to SourceCategory[]
 
 ## API Endpoints
@@ -34,42 +37,50 @@ Added a flexible categorization system to organize sources by topics, themes, or
 ### Categories
 
 **GET /api/categories**
+
 - Get all categories
 - Query params:
   - `withCounts=true`: Include source counts for each category
 - Returns: `{ categories: Category[] }`
 
 **POST /api/categories** (Admin only)
+
 - Create a new category
 - Body: `{ name, slug, description?, color?, icon? }`
 - Returns: `{ category: Category }`
 
 **GET /api/categories/[id]**
+
 - Get a specific category by ID
 - Returns: `{ category: Category }`
 
 **PATCH /api/categories/[id]** (Admin only)
+
 - Update a category
 - Body: `{ name?, slug?, description?, color?, icon? }`
 - Returns: `{ category: Category }`
 
 **DELETE /api/categories/[id]** (Admin only)
+
 - Delete a category
 - Returns: `{ success: true }`
 
 ### Source Categories
 
 **GET /api/sources/[id]/categories**
+
 - Get all categories assigned to a source
 - Returns: `{ categories: Category[] }`
 
 **POST /api/sources/[id]/categories**
+
 - Add a category to a source
 - Requires: Source owner or admin (for global sources)
 - Body: `{ categoryId: string }`
 - Returns: `{ sourceCategory: SourceCategory }`
 
 **DELETE /api/sources/[id]/categories/[categoryId]**
+
 - Remove a category from a source
 - Requires: Source owner or admin (for global sources)
 - Returns: `{ success: true }`
@@ -120,7 +131,7 @@ Created in `/lib/prisma-categories.ts`:
 import { getSourcesByCategory } from "@/lib/prisma-categories";
 
 const sourceCategories = await getSourcesByCategory(categoryId);
-const sources = sourceCategories.map(sc => sc.source);
+const sources = sourceCategories.map((sc) => sc.source);
 ```
 
 ### Display Categories in UI
@@ -130,7 +141,7 @@ import { getCategoriesWithCounts } from "@/lib/prisma-categories";
 
 const categories = await getCategoriesWithCounts();
 
-categories.forEach(cat => {
+categories.forEach((cat) => {
   console.log(`${cat.name}: ${cat._count.sources} sources`);
 });
 ```
