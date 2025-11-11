@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "seed:categories": "tsx scripts/seed-categories.ts"
+    "seed:categories": "tsx scripts/seed-categories.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.34.3",
