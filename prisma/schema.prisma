@@ -40,26 +40,54 @@ model User {
 }
 
 model Source {
-  id              String        @id @default(cuid())
+  id              String           @id @default(cuid())
   name            String
   type            String
   url             String
   description     String?
   avatarUrl       String?
-  isActive        Boolean       @default(true)
-  isGlobal        Boolean       @default(false)
+  isActive        Boolean          @default(true)
+  isGlobal        Boolean          @default(false)
   createdByUserId String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   contentItems    ContentItem[]
   playlists       Playlist[]
-  createdBy       User?         @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdBy       User?            @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
   followers       UserFollow[]
+  categories      SourceCategory[]
 
   @@index([type])
   @@index([isActive])
   @@index([isGlobal])
   @@index([createdByUserId])
+}
+
+model Category {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  slug        String           @unique
+  description String?
+  color       String?          @default("#6366f1") // Hex color for UI
+  icon        String? // Icon name (e.g., "video", "book", "mic")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  sources     SourceCategory[]
+
+  @@index([slug])
+}
+
+model SourceCategory {
+  id         String   @id @default(cuid())
+  sourceId   String
+  categoryId String
+  createdAt  DateTime @default(now())
+  source     Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, categoryId])
+  @@index([sourceId])
+  @@index([categoryId])
 }
 
 model UserFollow {
