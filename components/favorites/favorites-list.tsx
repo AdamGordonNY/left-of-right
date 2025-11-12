@@ -92,7 +92,13 @@ export function FavoritesList() {
       <div className="flex justify-end">
         <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
       </div>
-      <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
+      <div
+        className={
+          viewMode === "grid"
+            ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+            : "space-y-4"
+        }
+      >
         {favorites.map((favorite) => (
           <FavoriteCard
             key={favorite.id}

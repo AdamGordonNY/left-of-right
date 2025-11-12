@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 
 export type ViewMode = "grid" | "list";
 
-export function useViewMode(storageKey: string = "content-view-mode"): [ViewMode, (mode: ViewMode) => void] {
+export function useViewMode(
+  storageKey: string = "content-view-mode"
+): [ViewMode, (mode: ViewMode) => void] {
   const [viewMode, setViewModeState] = useState<ViewMode>("grid");
   const [mounted, setMounted] = useState(false);
 

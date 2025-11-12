@@ -28,7 +28,13 @@ export function SourcesGrid({
         </p>
         <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
       </div>
-      <div className={viewMode === "grid" ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
+      <div
+        className={
+          viewMode === "grid"
+            ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            : "space-y-4"
+        }
+      >
         {sources.map((source) => (
           <SourceCard
             key={source.id}

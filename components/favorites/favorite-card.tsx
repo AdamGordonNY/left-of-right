@@ -112,7 +112,10 @@ export function FavoriteCard({
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>
-                        {format(new Date(contentItem.publishedAt), "MMM d, yyyy")}
+                        {format(
+                          new Date(contentItem.publishedAt),
+                          "MMM d, yyyy"
+                        )}
                       </span>
                     </div>
                   )}

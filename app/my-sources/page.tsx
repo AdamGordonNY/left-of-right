@@ -140,11 +140,13 @@ export default async function MySourcesPage() {
           <TabsContent value="manage" className="space-y-6">
             <div className="rounded-lg border bg-orange-50 dark:bg-orange-950/30 p-4">
               <p className="text-sm text-orange-900 dark:text-orange-100">
-                Manage your personal sources. You can edit or delete any source you've created.
+                Manage your personal sources. You can edit or delete any source
+                you've created.
               </p>
             </div>
 
-            {sourcesWithStatus.filter((s) => s.createdByUserId === dbUserId).length === 0 ? (
+            {sourcesWithStatus.filter((s) => s.createdByUserId === dbUserId)
+              .length === 0 ? (
               <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 p-8 text-center">
                 <div className="rounded-full bg-muted p-6">
                   <Settings className="h-12 w-12 text-muted-foreground" />
@@ -158,7 +160,9 @@ export default async function MySourcesPage() {
               </div>
             ) : (
               <SourcesGrid
-                sources={sourcesWithStatus.filter((s) => s.createdByUserId === dbUserId)}
+                sources={sourcesWithStatus.filter(
+                  (s) => s.createdByUserId === dbUserId
+                )}
                 showFollowButton={false}
                 currentUserId={dbUserId}
                 isAdmin={isAdmin}

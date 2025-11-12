@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Youtube, FileText, ExternalLink, Heart, Users, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import {
+  Youtube,
+  FileText,
+  ExternalLink,
+  Heart,
+  Users,
+  MoreVertical,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,7 +52,8 @@ export function SourceCard({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const canEdit = isAdmin || (currentUserId && source.createdByUserId === currentUserId);
+  const canEdit =
+    isAdmin || (currentUserId && source.createdByUserId === currentUserId);
   const showActions = canEdit && !showFollowButton;
 
   const handleFollowToggle = async () => {
@@ -174,7 +184,9 @@ export function SourceCard({
                     disabled={isLoading}
                   >
                     <Heart
-                      className={`mr-1 h-4 w-4 ${isFollowing ? "fill-current" : ""}`}
+                      className={`mr-1 h-4 w-4 ${
+                        isFollowing ? "fill-current" : ""
+                      }`}
                     />
                     {isFollowing ? "Following" : "Follow"}
                   </Button>
@@ -191,7 +203,9 @@ export function SourceCard({
                         source={source}
                         isAdmin={isAdmin}
                         trigger={
-                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                          >
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
@@ -270,7 +284,9 @@ export function SourceCard({
                 disabled={isLoading}
               >
                 <Heart
-                  className={`mr-1 h-4 w-4 ${isFollowing ? "fill-current" : ""}`}
+                  className={`mr-1 h-4 w-4 ${
+                    isFollowing ? "fill-current" : ""
+                  }`}
                 />
                 {isFollowing ? "Following" : "Follow"}
               </Button>
