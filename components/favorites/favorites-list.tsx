@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { getUserFavorites } from "@/actions/favorites.actions";
 import { FavoriteCard } from "./favorite-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ViewToggle } from "@/components/ui/view-toggle";
+import { useViewMode } from "@/hooks/use-view-mode";
 import { Heart } from "lucide-react";
 import type { ContentItem, Source } from "@prisma/client";
 
@@ -26,6 +28,7 @@ export function FavoritesList() {
   const [favorites, setFavorites] = useState<FavoriteWithContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useViewMode("favorites-view-mode");
 
   useEffect(() => {
     async function loadFavorites() {
@@ -85,15 +88,21 @@ export function FavoritesList() {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {favorites.map((favorite) => (
-        <FavoriteCard
-          key={favorite.id}
-          favorite={favorite}
-          onRemove={handleRemoveFavorite}
-          onUpdateNotes={handleUpdateNotes}
-        />
-      ))}
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+      </div>
+      <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
+        {favorites.map((favorite) => (
+          <FavoriteCard
+            key={favorite.id}
+            favorite={favorite}
+            onRemove={handleRemoveFavorite}
+            onUpdateNotes={handleUpdateNotes}
+            viewMode={viewMode}
+          />
+        ))}
+      </div>
     </div>
   );
 }

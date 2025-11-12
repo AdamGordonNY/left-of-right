@@ -13,7 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ViewToggle } from "@/components/ui/view-toggle";
+import { useViewMode } from "@/hooks/use-view-mode";
 import { ContentItemCard } from "@/components/content/content-item-card";
 import { PlaylistCard } from "@/components/content/playlist-card";
 import type { ContentItem, Source, Playlist } from "@prisma/client";
@@ -33,7 +34,7 @@ export default function AllContentPage({ params }: AllContentPageProps) {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [playlistCount, setPlaylistCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useViewMode("content-view-mode");
 
   const tab = searchParams.get("tab") || "videos";
 
@@ -131,18 +132,7 @@ export default function AllContentPage({ params }: AllContentPageProps) {
                 </TabsList>
               </div>
 
-              <ToggleGroup
-                type="single"
-                value={viewMode}
-                onValueChange={(v) => v && setViewMode(v as "grid" | "list")}
-              >
-                <ToggleGroupItem value="grid" aria-label="Grid view">
-                  <LayoutGrid className="h-4 w-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="list" aria-label="List view">
-                  <Grid3x3 className="h-4 w-4 rotate-90" />
-                </ToggleGroupItem>
-              </ToggleGroup>
+              <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
             </div>
 
             <TabsContent value="videos">
@@ -220,18 +210,7 @@ export default function AllContentPage({ params }: AllContentPageProps) {
                 </p>
               </div>
 
-              <ToggleGroup
-                type="single"
-                value={viewMode}
-                onValueChange={(v) => v && setViewMode(v as "grid" | "list")}
-              >
-                <ToggleGroupItem value="grid" aria-label="Grid view">
-                  <LayoutGrid className="h-4 w-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="list" aria-label="List view">
-                  <Grid3x3 className="h-4 w-4 rotate-90" />
-                </ToggleGroupItem>
-              </ToggleGroup>
+              <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
             </div>
 
             {contentItems.length === 0 ? (

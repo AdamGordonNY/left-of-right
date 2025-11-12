@@ -29,6 +29,7 @@ interface SourceCardProps {
   showFollowButton?: boolean;
   currentUserId?: string | null;
   isAdmin?: boolean;
+  viewMode?: "grid" | "list";
 }
 
 export function SourceCard({
@@ -36,6 +37,7 @@ export function SourceCard({
   showFollowButton = true,
   currentUserId = null,
   isAdmin = false,
+  viewMode = "grid",
 }: SourceCardProps) {
   const [isFollowing, setIsFollowing] = useState(source.isFollowed);
   const [isLoading, setIsLoading] = useState(false);
@@ -99,6 +101,125 @@ export function SourceCard({
   const handleViewContent = () => {
     router.push(`/${sourceSlug}`);
   };
+
+  if (viewMode === "list") {
+    return (
+      <Card className="hover:shadow-lg transition-shadow">
+        <div className="flex gap-4 p-4">
+          <Avatar
+            className="h-16 w-16 flex-shrink-0 cursor-pointer"
+            onClick={handleViewContent}
+          >
+            <AvatarImage
+              src={source.avatarUrl || undefined}
+              alt={source.name}
+            />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <CardTitle
+                  className="text-lg cursor-pointer hover:text-blue-600 transition-colors mb-2"
+                  onClick={handleViewContent}
+                >
+                  {source.name}
+                </CardTitle>
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="outline" className="text-xs">
+                    <TypeIcon className="mr-1 h-3 w-3" />
+                    {source.type}
+                  </Badge>
+                  {source.isGlobal && (
+                    <Badge variant="secondary" className="text-xs">
+                      Global
+                    </Badge>
+                  )}
+                  {!source.isActive && (
+                    <Badge variant="destructive" className="text-xs">
+                      Inactive
+                    </Badge>
+                  )}
+                </div>
+                {source.description && (
+                  <CardDescription className="line-clamp-2 mb-2">
+                    {source.description}
+                  </CardDescription>
+                )}
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  {source.followerCount !== undefined && (
+                    <div className="flex items-center">
+                      <Users className="mr-1 h-4 w-4" />
+                      {source.followerCount}{" "}
+                      {source.followerCount === 1 ? "follower" : "followers"}
+                    </div>
+                  )}
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    Visit Source
+                    <ExternalLink className="ml-1 h-3 w-3" />
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {showFollowButton && (
+                  <Button
+                    size="sm"
+                    variant={isFollowing ? "outline" : "default"}
+                    onClick={handleFollowToggle}
+                    disabled={isLoading}
+                  >
+                    <Heart
+                      className={`mr-1 h-4 w-4 ${isFollowing ? "fill-current" : ""}`}
+                    />
+                    {isFollowing ? "Following" : "Follow"}
+                  </Button>
+                )}
+                {showActions && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <EditSourceDialog
+                        source={source}
+                        isAdmin={isAdmin}
+                        trigger={
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                        }
+                      />
+                      <DeleteSourceDialog
+                        sourceId={source.id}
+                        sourceName={source.name}
+                        trigger={
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        }
+                      />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="hover:shadow-lg transition-shadow">

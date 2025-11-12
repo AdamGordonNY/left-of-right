@@ -6,6 +6,7 @@ import {
 import { Heart, Library, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SourceCard } from "@/components/sources/source-card";
+import { SourcesGrid } from "@/components/sources/sources-grid";
 import { AddSourceDialog } from "@/components/sources/add-source-dialog";
 import { SyncYouTubeButton } from "@/components/sources/sync-youtube-button";
 import { redirect } from "next/navigation";
@@ -107,19 +108,7 @@ export default async function MySourcesPage() {
                 </p>
               </div>
             ) : (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  You are following {followedSourcesWithStatus.length}{" "}
-                  {followedSourcesWithStatus.length === 1
-                    ? "source"
-                    : "sources"}
-                </p>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {followedSourcesWithStatus.map((source) => (
-                    <SourceCard key={source.id} source={source} />
-                  ))}
-                </div>
-              </>
+              <SourcesGrid sources={followedSourcesWithStatus} />
             )}
           </TabsContent>
 
@@ -144,17 +133,7 @@ export default async function MySourcesPage() {
                 </p>
               </div>
             ) : (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Showing {sourcesWithStatus.length} available{" "}
-                  {sourcesWithStatus.length === 1 ? "source" : "sources"}
-                </p>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {sourcesWithStatus.map((source) => (
-                    <SourceCard key={source.id} source={source} />
-                  ))}
-                </div>
-              </>
+              <SourcesGrid sources={sourcesWithStatus} />
             )}
           </TabsContent>
 
@@ -178,25 +157,12 @@ export default async function MySourcesPage() {
                 </p>
               </div>
             ) : (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  You have {sourcesWithStatus.filter((s) => s.createdByUserId === dbUserId).length}{" "}
-                  personal {sourcesWithStatus.filter((s) => s.createdByUserId === dbUserId).length === 1 ? "source" : "sources"}
-                </p>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {sourcesWithStatus
-                    .filter((s) => s.createdByUserId === dbUserId)
-                    .map((source) => (
-                      <SourceCard
-                        key={source.id}
-                        source={source}
-                        showFollowButton={false}
-                        currentUserId={dbUserId}
-                        isAdmin={isAdmin}
-                      />
-                    ))}
-                </div>
-              </>
+              <SourcesGrid
+                sources={sourcesWithStatus.filter((s) => s.createdByUserId === dbUserId)}
+                showFollowButton={false}
+                currentUserId={dbUserId}
+                isAdmin={isAdmin}
+              />
             )}
           </TabsContent>
         </Tabs>
