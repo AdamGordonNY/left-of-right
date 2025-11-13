@@ -80,10 +80,10 @@ export function FavoriteCard({
     return (
       <>
         <Card className="group overflow-hidden transition-all hover:shadow-lg">
-          <div className="flex gap-4 p-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4">
             {contentItem.thumbnailUrl && (
               <div
-                className="relative w-48 flex-shrink-0 aspect-video overflow-hidden bg-muted rounded-md cursor-pointer"
+                className="relative w-full sm:w-40 md:w-48 flex-shrink-0 aspect-video overflow-hidden bg-muted rounded-md cursor-pointer"
                 onClick={() => isVideo && setIsPlayerOpen(true)}
               >
                 <img
@@ -93,25 +93,27 @@ export function FavoriteCard({
                 />
                 {isVideo && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
-                    <PlayCircle className="h-12 w-12 text-white" />
+                    <PlayCircle className="h-10 sm:h-12 w-10 sm:w-12 text-white" />
                   </div>
                 )}
-                <Badge className="absolute left-2 top-2 bg-red-600 hover:bg-red-700">
+                <Badge className="absolute left-2 top-2 text-xs bg-red-600 hover:bg-red-700">
                   {contentItem.type}
                 </Badge>
               </div>
             )}
             <div className="flex-1 min-w-0 space-y-2">
               <div>
-                <h3 className="font-semibold text-lg line-clamp-2 mb-2">
+                <h3 className="font-semibold text-base sm:text-lg line-clamp-2 mb-1 sm:mb-2">
                   {contentItem.title}
                 </h3>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
-                  <span className="font-medium">{contentItem.source.name}</span>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2">
+                  <span className="font-medium truncate">
+                    {contentItem.source.name}
+                  </span>
                   {contentItem.publishedAt && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Calendar className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
+                      <span className="whitespace-nowrap">
                         {format(
                           new Date(contentItem.publishedAt),
                           "MMM d, yyyy"
@@ -122,19 +124,20 @@ export function FavoriteCard({
                 </div>
               </div>
               {favorite.notes && (
-                <div className="rounded-lg bg-slate-50 p-3 border">
-                  <p className="text-sm text-slate-700 line-clamp-2">
+                <div className="rounded-lg bg-slate-50 p-2 sm:p-3 border">
+                  <p className="text-xs sm:text-sm text-slate-700 line-clamp-2">
                     {favorite.notes}
                   </p>
                 </div>
               )}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsNotesOpen(true)}
+                  className="text-xs sm:text-sm"
                 >
-                  <Edit className="h-4 w-4 mr-2" />
+                  <Edit className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-2" />
                   {favorite.notes ? "Edit Notes" : "Add Notes"}
                 </Button>
                 <Button
@@ -144,7 +147,7 @@ export function FavoriteCard({
                   disabled={isRemoving}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3 sm:h-4 w-3 sm:w-4" />
                 </Button>
               </div>
             </div>

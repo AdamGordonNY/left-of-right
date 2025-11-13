@@ -115,9 +115,9 @@ export function SourceCard({
   if (viewMode === "list") {
     return (
       <Card className="hover:shadow-lg transition-shadow">
-        <div className="flex gap-4 p-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4">
           <Avatar
-            className="h-16 w-16 flex-shrink-0 cursor-pointer"
+            className="h-16 w-16 sm:h-16 sm:w-16 flex-shrink-0 cursor-pointer mx-auto sm:mx-0"
             onClick={handleViewContent}
           >
             <AvatarImage
@@ -127,15 +127,15 @@ export function SourceCard({
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
               <div className="flex-1 min-w-0">
                 <CardTitle
-                  className="text-lg cursor-pointer hover:text-blue-600 transition-colors mb-2"
+                  className="text-base sm:text-lg cursor-pointer hover:text-blue-600 transition-colors mb-2 text-center sm:text-left"
                   onClick={handleViewContent}
                 >
                   {source.name}
                 </CardTitle>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
                   <Badge variant="outline" className="text-xs">
                     <TypeIcon className="mr-1 h-3 w-3" />
                     {source.type}
@@ -152,39 +152,42 @@ export function SourceCard({
                   )}
                 </div>
                 {source.description && (
-                  <CardDescription className="line-clamp-2 mb-2">
+                  <CardDescription className="line-clamp-2 mb-2 text-center sm:text-left text-xs sm:text-sm">
                     {source.description}
                   </CardDescription>
                 )}
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                   {source.followerCount !== undefined && (
-                    <div className="flex items-center">
-                      <Users className="mr-1 h-4 w-4" />
-                      {source.followerCount}{" "}
-                      {source.followerCount === 1 ? "follower" : "followers"}
+                    <div className="flex items-center justify-center sm:justify-start">
+                      <Users className="mr-1 h-3 sm:h-4 w-3 sm:w-4" />
+                      <span className="whitespace-nowrap">
+                        {source.followerCount}{" "}
+                        {source.followerCount === 1 ? "follower" : "followers"}
+                      </span>
                     </div>
                   )}
                   <a
                     href={source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-blue-600 hover:text-blue-800 hover:underline"
+                    className="flex items-center justify-center sm:justify-start text-blue-600 hover:text-blue-800 hover:underline"
                   >
-                    Visit Source
+                    <span className="whitespace-nowrap">Visit Source</span>
                     <ExternalLink className="ml-1 h-3 w-3" />
                   </a>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center justify-center sm:justify-start gap-2 flex-shrink-0">
                 {showFollowButton && (
                   <Button
                     size="sm"
                     variant={isFollowing ? "outline" : "default"}
                     onClick={handleFollowToggle}
                     disabled={isLoading}
+                    className="text-xs sm:text-sm"
                   >
                     <Heart
-                      className={`mr-1 h-4 w-4 ${
+                      className={`mr-1 h-3 sm:h-4 w-3 sm:w-4 ${
                         isFollowing ? "fill-current" : ""
                       }`}
                     />

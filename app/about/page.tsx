@@ -11,18 +11,20 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">About Left of Right</h1>
+    <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8">
+        About Left of Right
+      </h1>
 
       {/* Origin Story */}
-      <Card className="mb-6">
+      <Card className="mb-4 sm:mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Info className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Info className="h-4 sm:h-5 w-4 sm:w-5 flex-shrink-0" />
             Why This Exists
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 text-muted-foreground">
+        <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base text-muted-foreground">
           <p>
             I built this website to curate specific YouTube content without the
             distraction of the algorithm, and vet for intellectual honesty. All
@@ -55,19 +57,19 @@ export default function AboutPage() {
       </Card>
 
       {/* ADHD-Friendly Design */}
-      <Card className="mb-6">
+      <Card className="mb-4 sm:mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Brain className="h-4 sm:h-5 w-4 sm:w-5 flex-shrink-0" />
             Built for ADHD Brains
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 text-muted-foreground">
+        <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base text-muted-foreground">
           <p>
             This platform is designed from the ground up to help people with
-            ADHD (and anyone else) consume content in a healthier way:
+            (and anyone else) consume content in a healthier way:
           </p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
+          <ul className="list-disc list-inside space-y-2 ml-2 sm:ml-4 text-sm sm:text-base">
             <li>
               <strong>No autoplay:</strong> Videos don't start playing
               automatically or suggest "what's next" to keep you watching
@@ -100,14 +102,14 @@ export default function AboutPage() {
       </Card>
 
       {/* Privacy & Data */}
-      <Card className="mb-6">
+      <Card className="mb-4 sm:mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Shield className="h-4 sm:h-5 w-4 sm:w-5 flex-shrink-0" />
             Your Privacy & Data
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 text-muted-foreground">
+        <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base text-muted-foreground">
           <p className="font-semibold text-foreground">
             I don't track your data. I will never disclose your personal
             information.
@@ -119,7 +121,7 @@ export default function AboutPage() {
             encrypted in the database.
           </p>
           <p>What data is stored:</p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
+          <ul className="list-disc list-inside space-y-2 ml-2 sm:ml-4 text-sm sm:text-base">
             <li>Your email and basic profile information (via Clerk)</li>
             <li>
               Sources you follow, favorites you save, and playlists you create
@@ -129,7 +131,7 @@ export default function AboutPage() {
           <p>
             What I <strong>don't</strong> do:
           </p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
+          <ul className="list-disc list-inside space-y-2 ml-2 sm:ml-4 text-sm sm:text-base">
             <li>Track your viewing habits across the web</li>
             <li>Sell your data to third parties</li>
             <li>Use analytics to profile you</li>
@@ -145,14 +147,14 @@ export default function AboutPage() {
       </Card>
 
       {/* Current Limitations */}
-      <Card className="mb-6">
+      <Card className="mb-4 sm:mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Eye className="h-4 sm:h-5 w-4 sm:w-5 flex-shrink-0" />
             Current Limitations
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 text-muted-foreground">
+        <CardContent className="space-y-3 sm:space-y-4 text-sm sm:text-base text-muted-foreground">
           <p>
             There is a 10,000 request limit per day from Google's YouTube API. I
             have a backup key so the limit is really 20,000 requests per day,
@@ -174,7 +176,7 @@ export default function AboutPage() {
           <p>
             There are more features I'd like to add in the future, including:
           </p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
+          <ul className="list-disc list-inside space-y-2 ml-2 sm:ml-4 text-sm sm:text-base">
             <li>Integration with other platforms (podcasts, articles, etc.)</li>
             <li>AI-powered summaries for quick content overviews</li>
             <li>Better discovery features for finding new quality sources</li>
@@ -185,11 +187,11 @@ export default function AboutPage() {
 
       {/* Support */}
       <Alert className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30">
-        <Heart className="h-5 w-5 text-red-500" />
-        <AlertTitle className="text-blue-900 dark:text-blue-100 font-semibold">
+        <Heart className="h-4 sm:h-5 w-4 sm:w-5 flex-shrink-0 text-red-500" />
+        <AlertTitle className="text-blue-900 dark:text-blue-100 font-semibold text-base sm:text-lg">
           Support This Project
         </AlertTitle>
-        <AlertDescription className="text-blue-800 dark:text-blue-200 space-y-2">
+        <AlertDescription className="text-blue-800 dark:text-blue-200 space-y-2 text-sm sm:text-base">
           <p>
             Donations are not required, nor am I motivated by profit. I was
             motivated to build this site to curate content I value, and I
