@@ -18,6 +18,7 @@ import {
   getPlaylistCount,
 } from "@/lib/prisma-sources";
 import { getFollowerCount } from "@/lib/prisma-follows";
+import { getSourceCategories } from "@/lib/prisma-categories";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,13 +57,19 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
 
   const isYoutube = source.type === "youtube";
 
-  const [contentItems, playlists, followerCount, playlistCount] =
-    await Promise.all([
-      getContentItemsBySource(source.id),
-      isYoutube ? getPlaylistsBySource(source.id) : Promise.resolve([]),
-      getFollowerCount(source.id),
-      isYoutube ? getPlaylistCount(source.id) : Promise.resolve(0),
-    ]);
+  const [
+    contentItems,
+    playlists,
+    followerCount,
+    playlistCount,
+    sourceCategories,
+  ] = await Promise.all([
+    getContentItemsBySource(source.id),
+    isYoutube ? getPlaylistsBySource(source.id) : Promise.resolve([]),
+    getFollowerCount(source.id),
+    isYoutube ? getPlaylistCount(source.id) : Promise.resolve(0),
+    getSourceCategories(source.id),
+  ]);
 
   const recentItems = contentItems.slice(0, 12);
   const recentPlaylists = playlists.slice(0, 12);
@@ -103,6 +110,18 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
                     {source.isGlobal && (
                       <Badge variant="secondary">Global Source</Badge>
                     )}
+                    {sourceCategories.map((sc) => (
+                      <Badge
+                        key={sc.id}
+                        variant="default"
+                        style={{
+                          backgroundColor: sc.category.color || "#6366f1",
+                          color: "white",
+                        }}
+                      >
+                        {sc.category.name}
+                      </Badge>
+                    ))}
                     <div className="flex items-center text-sm text-slate-600">
                       <Users className="mr-1 h-4 w-4" />
                       {followerCount}{" "}

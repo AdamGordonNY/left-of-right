@@ -150,6 +150,18 @@ export function SourceCard({
                       Inactive
                     </Badge>
                   )}
+                  {source.categories?.map((sc) => (
+                    <Badge
+                      key={sc.id}
+                      className="text-xs"
+                      style={{
+                        backgroundColor: sc.color || "#6366f1",
+                        color: "white",
+                      }}
+                    >
+                      {sc.name}
+                    </Badge>
+                  ))}
                 </div>
                 {source.description && (
                   <CardDescription className="line-clamp-2 mb-2 text-center sm:text-left text-xs sm:text-sm">
@@ -260,7 +272,7 @@ export function SourceCard({
               >
                 {source.name}
               </CardTitle>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <Badge variant="outline" className="text-xs">
                   <TypeIcon className="mr-1 h-3 w-3" />
                   {source.type}
@@ -275,6 +287,18 @@ export function SourceCard({
                     Inactive
                   </Badge>
                 )}
+                {source.categories?.map((sc) => (
+                  <Badge
+                    key={sc.id}
+                    className="text-xs"
+                    style={{
+                      backgroundColor: sc.color || "#6366f1",
+                      color: "white",
+                    }}
+                  >
+                    {sc.name}
+                  </Badge>
+                ))}
               </div>
             </div>
           </div>

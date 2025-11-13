@@ -1,10 +1,10 @@
-import { prisma } from './prisma';
-import { UserFollow, Source } from '@prisma/client';
+import { prisma } from "./prisma";
+import { UserFollow, Source, Category, SourceCategory } from "@prisma/client";
 
 export async function getUserFollows(userId: string): Promise<UserFollow[]> {
   return prisma.userFollow.findMany({
     where: { userId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 }
 
@@ -76,6 +76,7 @@ export async function unfollowSource(
 export interface SourceWithFollowStatus extends Source {
   isFollowed: boolean;
   followerCount?: number;
+  categories?: Category[];
 }
 
 export async function getSourcesWithFollowStatus(
@@ -84,7 +85,14 @@ export async function getSourcesWithFollowStatus(
   const [sources, follows] = await Promise.all([
     prisma.source.findMany({
       where: { isActive: true },
-      orderBy: { name: 'asc' },
+      include: {
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+      },
+      orderBy: { name: "asc" },
     }),
     prisma.userFollow.findMany({
       where: { userId },
@@ -97,6 +105,7 @@ export async function getSourcesWithFollowStatus(
   return sources.map((source) => ({
     ...source,
     isFollowed: followedSourceIds.has(source.id),
+    categories: source.categories.map((sc) => sc.category),
   }));
 }
 
