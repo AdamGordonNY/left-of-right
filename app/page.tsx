@@ -3,6 +3,7 @@ import {
   getFollowedSourcesWithRecentContent,
   getGlobalSourcesWithRecentContent,
 } from "@/lib/feed-queries";
+import { getFollowedSources } from "@/lib/prisma-follows";
 import { Heart, Library } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -15,9 +16,16 @@ export default async function Home() {
 
   let sources = [];
   let isPersonalFeed = false;
+  let followedSourcesCount = 0;
 
   if (userId) {
-    const followedSources = await getFollowedSourcesWithRecentContent(userId);
+    const [followedSources, allFollowedSources] = await Promise.all([
+      getFollowedSourcesWithRecentContent(userId),
+      getFollowedSources(userId),
+    ]);
+
+    followedSourcesCount = allFollowedSources.length;
+
     if (followedSources.length > 0) {
       sources = followedSources;
       isPersonalFeed = true;
@@ -41,7 +49,9 @@ export default async function Home() {
               </h2>
               <p className="text-muted-foreground mt-1">
                 {isPersonalFeed
-                  ? "Latest content from channels you follow"
+                  ? `Latest content from ${followedSourcesCount} ${
+                      followedSourcesCount === 1 ? "channel" : "channels"
+                    } you follow`
                   : "Explore curated channels and content"}
               </p>
             </div>
@@ -55,9 +65,9 @@ export default async function Home() {
             )}
           </div>
 
-          {!isPersonalFeed && <Explainer />}
+          {!isPersonalFeed && followedSourcesCount === 0 && <Explainer />}
 
-          {userId && !isPersonalFeed && (
+          {userId && followedSourcesCount === 0 && (
             <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/30 p-4 mb-6">
               <div className="flex items-start gap-3">
                 <Heart className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
@@ -73,6 +83,24 @@ export default async function Home() {
                       manage your sources
                     </Link>
                     .
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {userId && followedSourcesCount > 0 && !isPersonalFeed && (
+            <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/30 p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <Library className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                    You're following {followedSourcesCount}{" "}
+                    {followedSourcesCount === 1 ? "channel" : "channels"}
+                  </p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                    Your followed channels don't have recent content yet. Check
+                    back soon or browse global sources below.
                   </p>
                 </div>
               </div>
