@@ -143,6 +143,16 @@ export default function AboutPage() {
             privacy is respected because it should be, not because regulations
             require it.
           </p>
+          <p>
+            For complete details, please read our{" "}
+            <Link
+              href="/privacy"
+              className="underline text-foreground font-medium"
+            >
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </CardContent>
       </Card>
 
