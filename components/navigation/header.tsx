@@ -1,6 +1,14 @@
 "use client";
 
-import { Layers, Library, Shield, Heart, Settings, Tag } from "lucide-react";
+import {
+  Layers,
+  Library,
+  Shield,
+  Heart,
+  Settings,
+  Tag,
+  Search,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,10 +63,16 @@ export function Header() {
             </div>
           </Link>
           <div className="flex items-center gap-3">
+            <Link href="/search">
+              <Button variant="outline" size="sm">
+                <Search className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Search</span>
+              </Button>
+            </Link>
             <Link href="/categories">
               <Button variant="outline" size="sm">
                 <Tag className="mr-2 h-4 w-4" />
-                Categories
+                <span className="hidden sm:inline">Categories</span>
               </Button>
             </Link>
             <SignedIn>

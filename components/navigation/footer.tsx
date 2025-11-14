@@ -25,6 +25,18 @@ export function Footer() {
             <h3 className="font-semibold text-foreground mb-3">Quick Links</h3>
             <nav className="space-y-2">
               <Link
+                href="/search"
+                className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Search Channels
+              </Link>
+              <Link
+                href="/categories"
+                className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Categories
+              </Link>
+              <Link
                 href="/about"
                 className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
