@@ -6,8 +6,9 @@ import {
 import { Heart, Library } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ChannelFeedCard } from "@/components/feed/channel-feed-card";
 import { WelcomeBanner } from "@/components/home/welcome-banner";
+import { Explainer } from "@/components/home/explainer";
+import { HomeClient } from "@/components/home/home-client";
 
 export default async function Home() {
   const userId = await getUserId();
@@ -46,13 +47,15 @@ export default async function Home() {
             </div>
             {userId && (
               <Link href="/my-sources">
-                <Button variant="outline">
+                <Button variant="outline" className="hidden sm:flex">
                   <Library className="mr-2 h-4 w-4" />
                   Manage Sources
                 </Button>
               </Link>
             )}
           </div>
+
+          {!isPersonalFeed && <Explainer />}
 
           {userId && !isPersonalFeed && (
             <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/30 p-4 mb-6">
@@ -64,7 +67,8 @@ export default async function Home() {
                   </p>
                   <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                     Start following channels to build your personalized feed.
-                    Browse global sources below or{" "}
+                    Click the <Heart className="inline h-4 w-4" /> button on
+                    sources below or{" "}
                     <Link href="/my-sources" className="underline font-medium">
                       manage your sources
                     </Link>
@@ -89,11 +93,7 @@ export default async function Home() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
-            {sources.map((source) => (
-              <ChannelFeedCard key={source.id} source={source} />
-            ))}
-          </div>
+          <HomeClient sources={sources} userId={userId} />
         )}
       </main>
     </div>
