@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { useQuotaError } from "@/hooks/use-quota-error";
 import { QuotaExceededDialog } from "@/components/notifications/quota-exceeded-dialog";
+import { useUser } from "@clerk/nextjs";
 
 interface SyncButtonProps {
   sourceId?: string;
@@ -18,9 +19,16 @@ interface SyncButtonProps {
 
 export function SyncYouTubeButton({ sourceId, sourceName }: SyncButtonProps) {
   const [isSyncing, setIsSyncing] = useState(false);
-  const { quotaError, isDialogOpen, setIsDialogOpen, handleQuotaError } = useQuotaError();
+  const { quotaError, isDialogOpen, setIsDialogOpen, handleQuotaError } =
+    useQuotaError();
+  const { isSignedIn } = useUser();
 
   const handleSync = async () => {
+    if (!isSignedIn) {
+      toast.error("Please sign in to sync sources");
+      return;
+    }
+
     setIsSyncing(true);
 
     try {
@@ -37,9 +45,9 @@ export function SyncYouTubeButton({ sourceId, sourceName }: SyncButtonProps) {
         }
 
         toast.success(
-          `Synced ${(result.videosAdded || 0) + (result.videosUpdated || 0)} videos from ${
-            sourceName || "channel"
-          }`
+          `Synced ${
+            (result.videosAdded || 0) + (result.videosUpdated || 0)
+          } videos from ${sourceName || "channel"}`
         );
       } else {
         const result = await syncAllYouTubeSources();
@@ -87,7 +95,11 @@ export function SyncYouTubeButton({ sourceId, sourceName }: SyncButtonProps) {
         <RefreshCw
           className={`mr-2 h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
         />
-        {isSyncing ? "Syncing..." : sourceId ? "Sync Videos" : "Sync All Sources"}
+        {isSyncing
+          ? "Syncing..."
+          : sourceId
+          ? "Sync Videos"
+          : "Sync All Sources"}
       </Button>
 
       {quotaError && (

@@ -149,7 +149,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
 
                 <div className="flex gap-2">
                   <FollowButton sourceId={source.id} />
-                  {isYoutube && (
+                  {isYoutube && clerkUserId && (
                     <SyncYouTubeButton
                       sourceId={source.id}
                       sourceName={source.name}
@@ -211,7 +211,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
                     <p className="text-slate-600 mb-4">
                       No videos available yet
                     </p>
-                    {isYoutube && (
+                    {isYoutube && clerkUserId && (
                       <SyncYouTubeButton
                         sourceId={source.id}
                         sourceName={source.name}
@@ -312,7 +312,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
                   <p className="text-slate-600 mb-4">
                     No content available yet
                   </p>
-                  {isYoutube && (
+                  {isYoutube && clerkUserId && (
                     <SyncYouTubeButton
                       sourceId={source.id}
                       sourceName={source.name}
