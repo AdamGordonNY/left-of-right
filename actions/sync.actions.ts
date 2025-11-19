@@ -46,13 +46,11 @@ export async function syncYouTubeSource(sourceId: string) {
       throw new Error("Failed to extract channel ID from URL");
     }
 
-    // Fetch videos
+    // Fetch videos (ordered from most recent to oldest)
     const videos = await getChannelVideos(channelId, 50);
 
-    // Store videos
-    let videosUpdated = 0;
-
-    // Store videos
+    // Store videos - stop when we encounter an existing video
+    // This assumes videos are ordered chronologically (newest first)
     for (const video of videos) {
       const existingVideo = await prisma.contentItem.findFirst({
         where: {
@@ -62,17 +60,14 @@ export async function syncYouTubeSource(sourceId: string) {
       });
 
       if (existingVideo) {
-        await prisma.contentItem.update({
-          where: { id: existingVideo.id },
-          data: {
-            title: video.title,
-            description: video.description,
-            thumbnailUrl: video.thumbnailUrl,
-            publishedAt: new Date(video.publishedAt),
-          },
-        });
-        videosUpdated++;
+        // Video already exists - this means we've synced up to this point
+        // Stop processing to save API quota and processing time
+        console.log(
+          `Found existing video "${video.title}" - stopping sync for ${source.name}`
+        );
+        break;
       } else {
+        // New video - add it to the database
         await prisma.contentItem.create({
           data: {
             sourceId: source.id,
