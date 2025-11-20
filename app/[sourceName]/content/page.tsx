@@ -17,6 +17,8 @@ import { ViewToggle } from "@/components/ui/view-toggle";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { ContentItemCard } from "@/components/content/content-item-card";
 import { PlaylistCard } from "@/components/content/playlist-card";
+import { AddPlaylistDialog } from "@/components/playlists/add-playlist-dialog";
+import { useUser } from "@clerk/nextjs";
 import type { ContentItem, Source, Playlist } from "@prisma/client";
 
 interface AllContentPageProps {
@@ -28,6 +30,7 @@ interface AllContentPageProps {
 export default function AllContentPage({ params }: AllContentPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isSignedIn } = useUser();
   const [sourceName, setSourceName] = useState<string>("");
   const [source, setSource] = useState<Source | null>(null);
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
@@ -167,6 +170,21 @@ export default function AllContentPage({ params }: AllContentPageProps) {
             </TabsContent>
 
             <TabsContent value="playlists">
+              <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  {isSignedIn && source.type === "youtube" && (
+                    <AddPlaylistDialog
+                      sourceId={source.id}
+                      sourceName={source.name}
+                    />
+                  )}
+                </div>
+                <ViewToggle
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                />
+              </div>
+
               {playlists.length === 0 ? (
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">

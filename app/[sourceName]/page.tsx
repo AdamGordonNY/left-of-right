@@ -26,6 +26,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FollowButton } from "@/components/sources/follow-button";
 import { SyncYouTubeButton } from "@/components/sources/sync-youtube-button";
+import { AddPlaylistDialog } from "@/components/playlists/add-playlist-dialog";
 import { ContentItemCard } from "@/components/content/content-item-card";
 import { PlaylistCard } from "@/components/content/playlist-card";
 
@@ -150,10 +151,16 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
                 <div className="flex gap-2">
                   <FollowButton sourceId={source.id} />
                   {isYoutube && clerkUserId && (
-                    <SyncYouTubeButton
-                      sourceId={source.id}
-                      sourceName={source.name}
-                    />
+                    <>
+                      <SyncYouTubeButton
+                        sourceId={source.id}
+                        sourceName={source.name}
+                      />
+                      <AddPlaylistDialog
+                        sourceId={source.id}
+                        sourceName={source.name}
+                      />
+                    </>
                   )}
                   <a
                     href={source.url}
@@ -247,14 +254,22 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
             <TabsContent value="playlists">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-slate-900">Playlists</h2>
-                {playlistCount > 12 && (
-                  <Link href={`/${slug}/content?tab=playlists`}>
-                    <Button variant="outline">
-                      View All ({playlistCount})
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
-                )}
+                <div className="flex gap-2">
+                  {clerkUserId && (
+                    <AddPlaylistDialog
+                      sourceId={source.id}
+                      sourceName={source.name}
+                    />
+                  )}
+                  {playlistCount > 12 && (
+                    <Link href={`/${slug}/content?tab=playlists`}>
+                      <Button variant="outline">
+                        View All ({playlistCount})
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
 
               {recentPlaylists.length === 0 ? (
