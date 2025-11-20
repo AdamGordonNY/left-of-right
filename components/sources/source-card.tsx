@@ -164,9 +164,9 @@ export function SourceCard({
                   ))}
                 </div>
                 {source.description && (
-                  <CardDescription className="line-clamp-2 mb-2 text-center sm:text-left text-xs sm:text-sm">
+                  <p className="line-clamp-2 mb-2 text-center sm:text-left text-xs sm:text-sm text-muted-foreground">
                     {source.description}
-                  </CardDescription>
+                  </p>
                 )}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                   {source.followerCount !== undefined && (

@@ -52,9 +52,11 @@ export function ArticleCard({ article, viewMode = "grid" }: ArticleCardProps) {
                 </span>
               </div>
             </div>
-            <p className="line-clamp-3 text-sm text-muted-foreground">
-              {article.excerpt}
-            </p>
+            {article.excerpt && (
+              <p className="line-clamp-2 text-sm text-muted-foreground">
+                {article.excerpt}
+              </p>
+            )}
           </div>
         </div>
       </Card>

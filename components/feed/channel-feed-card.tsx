@@ -86,7 +86,7 @@ export function ChannelFeedCard({
                 </a>
               </div>
               {source.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                <p className="line-clamp-2 text-sm text-muted-foreground mb-3">
                   {source.description}
                 </p>
               )}

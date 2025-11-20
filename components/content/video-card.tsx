@@ -46,9 +46,11 @@ export function VideoCard({ video, viewMode = "grid" }: VideoCardProps) {
                 </span>
               </div>
             </div>
-            <p className="line-clamp-2 text-sm text-muted-foreground">
-              {video.description}
-            </p>
+            {video.description && (
+              <p className="line-clamp-2 text-sm text-muted-foreground">
+                {video.description}
+              </p>
+            )}
           </div>
         </div>
       </Card>
