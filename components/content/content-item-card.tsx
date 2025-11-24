@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PlayCircle, Calendar, FileText } from "lucide-react";
+import {
+  PlayCircle,
+  Calendar,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -11,10 +17,35 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ContentItem, Source } from "@prisma/client";
 import { format } from "date-fns";
 import { VideoPlayerDialog } from "./video-player-dialog";
 import { FavoriteButton } from "./favorite-button";
+
+// Utility function to convert URLs in text to hyperlinks
+function linkifyText(text: string): React.ReactNode[] {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
 
 interface ContentItemCardProps {
   item: ContentItem;
@@ -30,8 +61,10 @@ export function ContentItemCard({
   viewMode = "grid",
 }: ContentItemCardProps) {
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const isVideo = item.type === "video";
   const Icon = isVideo ? PlayCircle : FileText;
+  const hasLongDescription = item.description && item.description.length > 150;
 
   const handleClick = (e: React.MouseEvent) => {
     if (isVideo) {
@@ -83,9 +116,37 @@ export function ContentItemCard({
                   )}
                 </div>
                 {item.description && (
-                  <p className="line-clamp-2 text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                    {item.description}
-                  </p>
+                  <div className="hidden sm:block">
+                    <div
+                      className={`text-xs sm:text-sm text-muted-foreground ${
+                        isExpanded ? "" : "line-clamp-2"
+                      }`}
+                    >
+                      {linkifyText(item.description)}
+                    </div>
+                    {hasLongDescription && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 mt-1 text-xs text-blue-600 hover:text-blue-800 hover:bg-transparent"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsExpanded(!isExpanded);
+                        }}
+                      >
+                        {isExpanded ? (
+                          <>
+                            Show less <ChevronUp className="ml-1 h-3 w-3" />
+                          </>
+                        ) : (
+                          <>
+                            Show more <ChevronDown className="ml-1 h-3 w-3" />
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
               <FavoriteButton
@@ -169,9 +230,35 @@ export function ContentItemCard({
       </CardHeader>
       {item.description && (
         <CardContent>
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {item.description}
-          </p>
+          <div
+            className={`text-sm text-muted-foreground ${
+              isExpanded ? "" : "line-clamp-2"
+            }`}
+          >
+            {linkifyText(item.description)}
+          </div>
+          {hasLongDescription && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto p-0 mt-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-transparent"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {isExpanded ? (
+                <>
+                  Show less <ChevronUp className="ml-1 h-3 w-3" />
+                </>
+              ) : (
+                <>
+                  Show more <ChevronDown className="ml-1 h-3 w-3" />
+                </>
+              )}
+            </Button>
+          )}
         </CardContent>
       )}
     </Card>
