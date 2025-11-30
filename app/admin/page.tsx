@@ -4,6 +4,7 @@ import { Shield } from "lucide-react";
 import { AddSourceDialog } from "@/components/sources/add-source-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CategoryManager } from "@/components/admin/category-manager";
+import { UsersList } from "@/components/admin/users-list";
 
 export default async function AdminPage() {
   const role = await getUserRole();
@@ -40,6 +41,7 @@ export default async function AdminPage() {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -66,12 +68,15 @@ export default async function AdminPage() {
                   User Management
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Manage user roles and permissions
+                  View users, API keys, and followed sources
                 </p>
                 <div className="mt-4">
-                  <span className="text-sm text-muted-foreground">
-                    Coming soon
-                  </span>
+                  <a
+                    href="/admin/users"
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    View all users →
+                  </a>
                 </div>
               </div>
 
@@ -110,6 +115,10 @@ export default async function AdminPage() {
 
           <TabsContent value="categories" className="mt-6">
             <CategoryManager />
+          </TabsContent>
+
+          <TabsContent value="users" className="mt-6">
+            <UsersList />
           </TabsContent>
         </Tabs>
       </main>
