@@ -13,12 +13,24 @@ import { revalidatePath } from "next/cache";
 export async function syncYouTubeSource(sourceId: string) {
   let videosAdded = 0;
   let videosUpdated = 0;
+  const startedAt = new Date();
+  const failedVideos: Array<{ title: string; url: string; error: string }> = [];
+  let logId: string | null = null;
 
   try {
     const { userId } = await auth();
 
     if (!userId) {
       throw new Error("Unauthorized");
+    }
+
+    // Get user's database ID
+    const dbUser = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!dbUser) {
+      throw new Error("User not found");
     }
 
     // Check if YouTube API key is configured
@@ -39,6 +51,19 @@ export async function syncYouTubeSource(sourceId: string) {
       throw new Error("Source is not a YouTube channel");
     }
 
+    // Create initial sync log
+    const syncLog = await prisma.syncLog.create({
+      data: {
+        userId: dbUser.id,
+        sourceId: source.id,
+        sourceName: source.name,
+        syncType: "single_source",
+        status: "success",
+        startedAt,
+      },
+    });
+    logId = syncLog.id;
+
     // Extract channel ID
     const channelId = await getChannelIdFromUrl(source.url);
 
@@ -52,36 +77,65 @@ export async function syncYouTubeSource(sourceId: string) {
     // Store videos - stop when we encounter an existing video
     // This assumes videos are ordered chronologically (newest first)
     for (const video of videos) {
-      const existingVideo = await prisma.contentItem.findFirst({
-        where: {
-          sourceId: source.id,
-          url: video.url,
-        },
-      });
-
-      if (existingVideo) {
-        // Video already exists - this means we've synced up to this point
-        // Stop processing to save API quota and processing time
-        console.log(
-          `Found existing video "${video.title}" - stopping sync for ${source.name}`
-        );
-        break;
-      } else {
-        // New video - add it to the database
-        await prisma.contentItem.create({
-          data: {
+      try {
+        const existingVideo = await prisma.contentItem.findFirst({
+          where: {
             sourceId: source.id,
-            type: "video",
-            title: video.title,
             url: video.url,
-            thumbnailUrl: video.thumbnailUrl,
-            description: video.description,
-            publishedAt: new Date(video.publishedAt),
           },
         });
-        videosAdded++;
+
+        if (existingVideo) {
+          // Video already exists - this means we've synced up to this point
+          // Stop processing to save API quota and processing time
+          console.log(
+            `Found existing video "${video.title}" - stopping sync for ${source.name}`
+          );
+          break;
+        } else {
+          // New video - add it to the database
+          await prisma.contentItem.create({
+            data: {
+              sourceId: source.id,
+              type: "video",
+              title: video.title,
+              url: video.url,
+              thumbnailUrl: video.thumbnailUrl,
+              description: video.description,
+              publishedAt: new Date(video.publishedAt),
+            },
+          });
+          videosAdded++;
+        }
+      } catch (videoError) {
+        // Log individual video failures
+        failedVideos.push({
+          title: video.title,
+          url: video.url,
+          error:
+            videoError instanceof Error ? videoError.message : "Unknown error",
+        });
       }
     }
+
+    const completedAt = new Date();
+
+    // Update sync log with results
+    await prisma.syncLog.update({
+      where: { id: logId },
+      data: {
+        status: failedVideos.length > 0 ? "partial" : "success",
+        videosAdded,
+        videosFailed: failedVideos.length,
+        totalProcessed: videosAdded + failedVideos.length,
+        failedVideos: failedVideos.length > 0 ? failedVideos : undefined,
+        completedAt,
+        metadata: {
+          videosInResponse: videos.length,
+          stoppedEarly: videosAdded + failedVideos.length < videos.length,
+        },
+      },
+    });
 
     // Revalidate relevant paths
     revalidatePath("/my-sources");
@@ -91,9 +145,27 @@ export async function syncYouTubeSource(sourceId: string) {
       success: true,
       videosAdded,
       videosUpdated,
+      failedVideos: failedVideos.length > 0 ? failedVideos : undefined,
     };
   } catch (error) {
     console.error("Error syncing YouTube source:", error);
+
+    // Update sync log with error
+    if (logId) {
+      await prisma.syncLog.update({
+        where: { id: logId },
+        data: {
+          status: "failed",
+          videosAdded,
+          videosFailed: failedVideos.length,
+          totalProcessed: videosAdded + failedVideos.length,
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+          failedVideos: failedVideos.length > 0 ? failedVideos : undefined,
+          completedAt: new Date(),
+        },
+      });
+    }
 
     if (error instanceof QuotaExhaustedError) {
       return {
@@ -111,6 +183,10 @@ export async function syncYouTubeSource(sourceId: string) {
 }
 
 export async function syncAllYouTubeSources() {
+  const startedAt = new Date();
+  const failedSources: Array<{ sourceName: string; error: string }> = [];
+  let logId: string | null = null;
+
   try {
     const { userId } = await auth();
 
@@ -145,6 +221,21 @@ export async function syncAllYouTubeSources() {
       },
     });
 
+    // Create bulk sync log
+    const syncLog = await prisma.syncLog.create({
+      data: {
+        userId: dbUser.id,
+        syncType: "bulk_sync",
+        status: "success",
+        startedAt,
+        metadata: {
+          totalSources: sources.length,
+          sourceNames: sources.map((s) => s.name),
+        },
+      },
+    });
+    logId = syncLog.id;
+
     let totalVideosAdded = 0;
     let totalVideosUpdated = 0;
     let sourcesProcessed = 0;
@@ -169,8 +260,41 @@ export async function syncAllYouTubeSources() {
       } catch (error) {
         console.error(`Error syncing ${source.name}:`, error);
         errors.push(source.name);
+        failedSources.push({
+          sourceName: source.name,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       }
     }
+
+    const completedAt = new Date();
+
+    // Update bulk sync log with results
+    await prisma.syncLog.update({
+      where: { id: logId },
+      data: {
+        status: quotaExceeded
+          ? "failed"
+          : failedSources.length > 0
+          ? "partial"
+          : "success",
+        videosAdded: totalVideosAdded,
+        videosFailed: 0,
+        totalProcessed: sourcesProcessed,
+        errorMessage: quotaExceeded
+          ? "Quota exceeded during bulk sync"
+          : undefined,
+        failedVideos: failedSources.length > 0 ? failedSources : undefined,
+        completedAt,
+        metadata: {
+          totalSources: sources.length,
+          sourcesProcessed,
+          sourceNames: sources.map((s) => s.name),
+          quotaExceeded,
+          resetAt,
+        },
+      },
+    });
 
     return {
       success: !quotaExceeded,
@@ -183,6 +307,21 @@ export async function syncAllYouTubeSources() {
     };
   } catch (error) {
     console.error("Error syncing all YouTube sources:", error);
+
+    // Update sync log with error
+    if (logId) {
+      await prisma.syncLog.update({
+        where: { id: logId },
+        data: {
+          status: "failed",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+          failedVideos: failedSources.length > 0 ? failedSources : undefined,
+          completedAt: new Date(),
+        },
+      });
+    }
+
     throw error;
   }
 }

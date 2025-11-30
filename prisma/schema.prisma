@@ -33,6 +33,7 @@ model User {
   sources             Source[]
   follows             UserFollow[]
   favorites           Favorite[]
+  syncLogs            SyncLog[]
 
   @@index([clerkId])
   @@index([email])
@@ -169,4 +170,29 @@ model PlaylistItem {
   @@index([playlistId])
   @@index([contentItemId])
   @@index([position])
+}
+
+model SyncLog {
+  id             String    @id @default(cuid())
+  userId         String
+  sourceId       String?
+  sourceName     String?
+  syncType       String // "single_source", "bulk_sync"
+  status         String // "success", "partial", "failed"
+  videosAdded    Int       @default(0)
+  videosFailed   Int       @default(0)
+  totalProcessed Int       @default(0)
+  errorMessage   String?   @db.Text
+  failedVideos   Json? // Array of { title, url, error }
+  metadata       Json? // Additional context like API quota used, etc.
+  startedAt      DateTime
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sourceId])
+  @@index([syncType])
+  @@index([status])
+  @@index([startedAt])
 }

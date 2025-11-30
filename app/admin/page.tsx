@@ -5,6 +5,7 @@ import { AddSourceDialog } from "@/components/sources/add-source-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CategoryManager } from "@/components/admin/category-manager";
 import { UsersList } from "@/components/admin/users-list";
+import { SyncLogsList } from "@/components/admin/sync-logs-list";
 
 export default async function AdminPage() {
   const role = await getUserRole();
@@ -42,6 +43,7 @@ export default async function AdminPage() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="sync-logs">Sync Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -119,6 +121,10 @@ export default async function AdminPage() {
 
           <TabsContent value="users" className="mt-6">
             <UsersList />
+          </TabsContent>
+
+          <TabsContent value="sync-logs" className="mt-6">
+            <SyncLogsList />
           </TabsContent>
         </Tabs>
       </main>
