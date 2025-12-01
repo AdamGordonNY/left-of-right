@@ -21,6 +21,33 @@ import { AddPlaylistDialog } from "@/components/playlists/add-playlist-dialog";
 import { useUser } from "@clerk/nextjs";
 import type { ContentItem, Source, Playlist } from "@prisma/client";
 
+// Group content items by date
+function groupItemsByDate(items: ContentItem[]) {
+  const groups: { date: string; items: ContentItem[] }[] = [];
+  const dateMap = new Map<string, ContentItem[]>();
+
+  items.forEach((item) => {
+    if (!item.publishedAt) return;
+    const date = new Date(item.publishedAt);
+    const dateKey = date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    if (!dateMap.has(dateKey)) {
+      dateMap.set(dateKey, []);
+    }
+    dateMap.get(dateKey)!.push(item);
+  });
+
+  dateMap.forEach((items, date) => {
+    groups.push({ date, items });
+  });
+
+  return groups;
+}
+
 interface AllContentPageProps {
   params: Promise<{
     sourceName: string;
@@ -149,21 +176,30 @@ export default function AllContentPage({ params }: AllContentPageProps) {
                   </CardContent>
                 </Card>
               ) : (
-                <div
-                  className={
-                    viewMode === "grid"
-                      ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                      : "flex flex-col gap-4"
-                  }
-                >
-                  {contentItems.map((item) => (
-                    <ContentItemCard
-                      key={item.id}
-                      item={item}
-                      source={source}
-                      slug={slug}
-                      viewMode={viewMode}
-                    />
+                <div className="space-y-8">
+                  {groupItemsByDate(contentItems).map((group) => (
+                    <div key={group.date}>
+                      <h3 className="text-lg font-semibold text-slate-900 mb-4 pb-2 border-b">
+                        {group.date}
+                      </h3>
+                      <div
+                        className={
+                          viewMode === "grid"
+                            ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                            : "flex flex-col gap-4"
+                        }
+                      >
+                        {group.items.map((item) => (
+                          <ContentItemCard
+                            key={item.id}
+                            item={item}
+                            source={source}
+                            slug={slug}
+                            viewMode={viewMode}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -241,21 +277,30 @@ export default function AllContentPage({ params }: AllContentPageProps) {
                 </CardContent>
               </Card>
             ) : (
-              <div
-                className={
-                  viewMode === "grid"
-                    ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                    : "flex flex-col gap-4"
-                }
-              >
-                {contentItems.map((item) => (
-                  <ContentItemCard
-                    key={item.id}
-                    item={item}
-                    source={source}
-                    slug={slug}
-                    viewMode={viewMode}
-                  />
+              <div className="space-y-8">
+                {groupItemsByDate(contentItems).map((group) => (
+                  <div key={group.date}>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-4 pb-2 border-b">
+                      {group.date}
+                    </h3>
+                    <div
+                      className={
+                        viewMode === "grid"
+                          ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                          : "flex flex-col gap-4"
+                      }
+                    >
+                      {group.items.map((item) => (
+                        <ContentItemCard
+                          key={item.id}
+                          item={item}
+                          source={source}
+                          slug={slug}
+                          viewMode={viewMode}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
