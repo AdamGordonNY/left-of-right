@@ -23,7 +23,7 @@ export interface QuotaStatus {
   };
 }
 
-// Ensure cache directory exists
+// Ensure the quota cache directory exists on disk (supports serverless /tmp)
 async function ensureCacheDir() {
   try {
     await mkdir(CACHE_DIR, { recursive: true });
@@ -32,11 +32,11 @@ async function ensureCacheDir() {
   }
 }
 
-// Get midnight PST (YouTube quota reset time)
+// Compute the next midnight PST timestamp (YouTube quota reset)
 export function getMidnightPST(): Date {
   const now = new Date();
   const pst = new Date(
-    now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
+    now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
   );
 
   pst.setDate(pst.getDate() + 1);
@@ -45,7 +45,7 @@ export function getMidnightPST(): Date {
   return pst;
 }
 
-// Read quota status from file
+// Read quota status from disk, resetting exhausted keys after midnight
 export async function getQuotaStatus(): Promise<QuotaStatus> {
   // Always ensure cache directory exists before any operation
   await ensureCacheDir();
@@ -94,12 +94,12 @@ export async function getQuotaStatus(): Promise<QuotaStatus> {
         await writeFile(
           QUOTA_FILE,
           JSON.stringify(defaultStatus, null, 2),
-          "utf-8"
+          "utf-8",
         );
       } catch (writeError) {
         console.error(
           "[YouTube Cache] Failed to create quota status file:",
-          writeError
+          writeError,
         );
       }
     }
@@ -109,10 +109,10 @@ export async function getQuotaStatus(): Promise<QuotaStatus> {
   }
 }
 
-// Update quota status
+// Persist quota status updates for the chosen key to disk
 export async function updateQuotaStatus(
   keyType: "primary" | "backup",
-  updates: Partial<QuotaStatus["primary"]>
+  updates: Partial<QuotaStatus["primary"]>,
 ): Promise<void> {
   await ensureCacheDir();
 
@@ -122,11 +122,11 @@ export async function updateQuotaStatus(
   await writeFile(QUOTA_FILE, JSON.stringify(status, null, 2), "utf-8");
 }
 
-// Log quota usage
+// Record a quota usage event for system keys and persist counts
 export async function logQuotaUsage(
   keyType: "primary" | "backup",
   success: boolean,
-  quotaExceeded: boolean
+  quotaExceeded: boolean,
 ): Promise<void> {
   const status = await getQuotaStatus();
 
@@ -145,18 +145,18 @@ export async function logQuotaUsage(
 
   // Optional: Log to console for debugging
   console.log(
-    `[YouTube API] ${keyType} key - Success: ${success}, Quota exceeded: ${quotaExceeded}, Total today: ${status[keyType].requestsToday}`
+    `[YouTube API] ${keyType} key - Success: ${success}, Quota exceeded: ${quotaExceeded}, Total today: ${status[keyType].requestsToday}`,
   );
 }
 
-// Create cached function with Next.js unstable_cache
+// Wrap a promise-returning function with Next.js cache, tagging by operation
 export function createCachedYouTubeFunction<T>(
   fn: () => Promise<T>,
   keyParts: string[],
   options: {
     tags?: string[];
     revalidate?: number; // seconds
-  } = {}
+  } = {},
 ): () => Promise<T> {
   return unstable_cache(fn, keyParts, {
     tags: options.tags || ["youtube"],
@@ -164,10 +164,10 @@ export function createCachedYouTubeFunction<T>(
   });
 }
 
-// Helper to create cache key from params
+// Build a deterministic cache key from an operation type and params
 export function createCacheKey(
   operationType: string,
-  params: Record<string, any>
+  params: Record<string, any>,
 ): string[] {
   const sortedParams = Object.keys(params)
     .sort()
@@ -192,11 +192,9 @@ export interface UserQuotaStatus {
   };
 }
 
-/**
- * Get quota status for a specific user from database
- */
+// Fetch user-specific quota status stored on their user record
 export async function getUserQuotaStatus(
-  userId: string
+  userId: string,
 ): Promise<UserQuotaStatus> {
   const { prisma } = await import("@/lib/prisma");
 
@@ -221,14 +219,12 @@ export async function getUserQuotaStatus(
   return user.apiKeyQuotaStatus as unknown as UserQuotaStatus;
 }
 
-/**
- * Log quota usage for a specific user in database
- */
+// Record quota usage for a specific user's keys
 export async function logUserQuotaUsage(
   userId: string,
   keyType: "primary" | "backup",
   success: boolean,
-  quotaExceeded: boolean
+  quotaExceeded: boolean,
 ): Promise<void> {
   const { prisma } = await import("@/lib/prisma");
 
@@ -252,13 +248,11 @@ export async function logUserQuotaUsage(
   });
 
   console.log(
-    `[YouTube API] User ${userId} ${keyType} key - Success: ${success}, Quota exceeded: ${quotaExceeded}, Total today: ${status[keyType].requestsToday}`
+    `[YouTube API] User ${userId} ${keyType} key - Success: ${success}, Quota exceeded: ${quotaExceeded}, Total today: ${status[keyType].requestsToday}`,
   );
 }
 
-/**
- * Reset user quota status (called daily or on demand)
- */
+// Reset a user's quota counters (used by cron/daily reset)
 export async function resetUserQuotaStatus(userId: string): Promise<void> {
   const { prisma } = await import("@/lib/prisma");
 

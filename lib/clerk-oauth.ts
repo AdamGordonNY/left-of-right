@@ -1,13 +1,14 @@
 import { clerkClient } from "@clerk/nextjs/server";
 
+// Fetch a user's Google OAuth access token from Clerk, or null if missing
 export async function getGoogleOAuthToken(
-  clerkUserId: string
+  clerkUserId: string,
 ): Promise<string | null> {
   try {
     const client = await clerkClient();
     const response = await client.users.getUserOauthAccessToken(
       clerkUserId,
-      "oauth_google"
+      "oauth_google",
     );
 
     if (!response.data || response.data.length === 0) {
@@ -23,15 +24,16 @@ export async function getGoogleOAuthToken(
   }
 }
 
+// Check whether the user has a linked Google account in Clerk
 export async function hasGoogleOAuthConnection(
-  clerkUserId: string
+  clerkUserId: string,
 ): Promise<boolean> {
   try {
     const client = await clerkClient();
     const user = await client.users.getUser(clerkUserId);
 
     const hasGoogle = user.externalAccounts?.some(
-      (account) => account.provider === "google"
+      (account) => account.provider === "google",
     );
 
     return hasGoogle || false;

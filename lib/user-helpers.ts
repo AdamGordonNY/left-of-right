@@ -1,6 +1,7 @@
-import { prisma } from './prisma';
-import { User } from '@prisma/client';
+import { prisma } from "./prisma";
+import { User } from "@prisma/client";
 
+// Create a user record mirroring Clerk data
 export async function createUser(data: {
   clerkId: string;
   email: string;
@@ -20,18 +21,21 @@ export async function createUser(data: {
   });
 }
 
+// Find a user by their Clerk ID
 export async function getUserByClerkId(clerkId: string): Promise<User | null> {
   return prisma.user.findUnique({
     where: { clerkId },
   });
 }
 
+// Find a user by email address
 export async function getUserByEmail(email: string): Promise<User | null> {
   return prisma.user.findUnique({
     where: { email },
   });
 }
 
+// Update basic user profile fields
 export async function updateUser(
   clerkId: string,
   data: {
@@ -39,7 +43,7 @@ export async function updateUser(
     firstName?: string;
     lastName?: string;
     imageUrl?: string;
-  }
+  },
 ): Promise<User> {
   return prisma.user.update({
     where: { clerkId },
@@ -47,12 +51,14 @@ export async function updateUser(
   });
 }
 
+// Delete a user by Clerk ID
 export async function deleteUser(clerkId: string): Promise<User> {
   return prisma.user.delete({
     where: { clerkId },
   });
 }
 
+// Upsert a user record based on Clerk ID
 export async function upsertUser(data: {
   clerkId: string;
   email: string;

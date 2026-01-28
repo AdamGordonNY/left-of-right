@@ -19,6 +19,7 @@ export type PlaylistWithItems = Playlist & {
   })[];
 };
 
+// Fetch active sources the user can access (own or global)
 export async function getSources(userId?: string): Promise<Source[]> {
   const where = userId
     ? {
@@ -33,14 +34,16 @@ export async function getSources(userId?: string): Promise<Source[]> {
   });
 }
 
+// Look up a source by ID
 export async function getSourceById(id: string): Promise<Source | null> {
   return prisma.source.findUnique({
     where: { id },
   });
 }
 
+// Fetch a source with all associated content items
 export async function getSourceWithContentItems(
-  id: string
+  id: string,
 ): Promise<SourceWithContentItems | null> {
   return prisma.source.findUnique({
     where: { id },
@@ -52,6 +55,7 @@ export async function getSourceWithContentItems(
   });
 }
 
+// Create a source, validating the creator exists when provided
 export async function createSource(data: {
   name: string;
   type: string;
@@ -82,6 +86,7 @@ export async function createSource(data: {
   });
 }
 
+// Update mutable fields on a source
 export async function updateSource(
   id: string,
   data: {
@@ -92,7 +97,7 @@ export async function updateSource(
     avatarUrl?: string;
     isActive?: boolean;
     isGlobal?: boolean;
-  }
+  },
 ): Promise<Source> {
   return prisma.source.update({
     where: { id },
@@ -100,14 +105,16 @@ export async function updateSource(
   });
 }
 
+// Delete a source by ID
 export async function deleteSource(id: string): Promise<Source> {
   return prisma.source.delete({
     where: { id },
   });
 }
 
+// Fetch content items with their source, filtered to accessible sources
 export async function getContentItems(
-  userId?: string
+  userId?: string,
 ): Promise<ContentItemWithSource[]> {
   const where = userId
     ? {
@@ -130,8 +137,9 @@ export async function getContentItems(
   });
 }
 
+// Fetch content items for a specific source
 export async function getContentItemsBySource(
-  sourceId: string
+  sourceId: string,
 ): Promise<ContentItem[]> {
   return prisma.contentItem.findMany({
     where: { sourceId },
@@ -139,9 +147,10 @@ export async function getContentItemsBySource(
   });
 }
 
+// Fetch content items of a given type filtered to accessible sources
 export async function getContentItemsByType(
   type: string,
-  userId?: string
+  userId?: string,
 ): Promise<ContentItemWithSource[]> {
   const where = userId
     ? {
@@ -166,6 +175,7 @@ export async function getContentItemsByType(
   });
 }
 
+// Create a new content item under a source
 export async function createContentItem(data: {
   sourceId: string;
   type: string;
@@ -183,6 +193,7 @@ export async function createContentItem(data: {
   });
 }
 
+// Update fields on a content item
 export async function updateContentItem(
   id: string,
   data: {
@@ -193,7 +204,7 @@ export async function updateContentItem(
     thumbnailUrl?: string;
     description?: string;
     publishedAt?: Date;
-  }
+  },
 ): Promise<ContentItem> {
   return prisma.contentItem.update({
     where: { id },
@@ -201,14 +212,16 @@ export async function updateContentItem(
   });
 }
 
+// Delete a content item by ID
 export async function deleteContentItem(id: string): Promise<ContentItem> {
   return prisma.contentItem.delete({
     where: { id },
   });
 }
 
+// Fetch playlists for a source ordered by publish date
 export async function getPlaylistsBySource(
-  sourceId: string
+  sourceId: string,
 ): Promise<Playlist[]> {
   return prisma.playlist.findMany({
     where: { sourceId },
@@ -216,14 +229,16 @@ export async function getPlaylistsBySource(
   });
 }
 
+// Look up a playlist by ID
 export async function getPlaylistById(id: string): Promise<Playlist | null> {
   return prisma.playlist.findUnique({
     where: { id },
   });
 }
 
+// Fetch a playlist with ordered playlist items and their content items
 export async function getPlaylistWithItems(
-  id: string
+  id: string,
 ): Promise<PlaylistWithItems | null> {
   return prisma.playlist.findUnique({
     where: { id },
@@ -238,12 +253,14 @@ export async function getPlaylistWithItems(
   });
 }
 
+// Count playlists belonging to a source
 export async function getPlaylistCount(sourceId: string): Promise<number> {
   return prisma.playlist.count({
     where: { sourceId },
   });
 }
 
+// Create a playlist under a source
 export async function createPlaylist(data: {
   sourceId: string;
   title: string;
@@ -261,6 +278,7 @@ export async function createPlaylist(data: {
   });
 }
 
+// Update playlist metadata
 export async function updatePlaylist(
   id: string,
   data: {
@@ -270,7 +288,7 @@ export async function updatePlaylist(
     playlistUrl?: string;
     videoCount?: number;
     publishedAt?: Date;
-  }
+  },
 ): Promise<Playlist> {
   return prisma.playlist.update({
     where: { id },
@@ -278,12 +296,14 @@ export async function updatePlaylist(
   });
 }
 
+// Delete a playlist by ID
 export async function deletePlaylist(id: string): Promise<Playlist> {
   return prisma.playlist.delete({
     where: { id },
   });
 }
 
+// Create a playlist item mapping a content item into a playlist position
 export async function createPlaylistItem(data: {
   playlistId: string;
   contentItemId: string;
@@ -297,12 +317,14 @@ export async function createPlaylistItem(data: {
   });
 }
 
+// Delete a playlist item by ID
 export async function deletePlaylistItem(id: string): Promise<PlaylistItem> {
   return prisma.playlistItem.delete({
     where: { id },
   });
 }
 
+// Lightweight ID generator for new records
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }

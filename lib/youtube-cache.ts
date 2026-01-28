@@ -3,7 +3,7 @@ import { createHash } from "crypto";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 export interface CacheOptions {
@@ -18,15 +18,17 @@ export interface QuotaLogEntry {
   quotaExceeded: boolean;
 }
 
+// Build a stable cache key for a YouTube operation and parameter set
 function generateCacheKey(operationType: string, params: any): string {
   const paramsString = JSON.stringify(params, Object.keys(params).sort());
   const hash = createHash("md5").update(paramsString).digest("hex");
   return `${operationType}:${hash}`;
 }
 
+// Retrieve cached API response if still valid, returning null on miss
 export async function getCachedData<T>(
   operationType: string,
-  params: any
+  params: any,
 ): Promise<T | null> {
   try {
     const cacheKey = generateCacheKey(operationType, params);
@@ -60,11 +62,12 @@ export async function getCachedData<T>(
   }
 }
 
+// Store API response in cache with optional TTL override
 export async function setCachedData<T>(
   operationType: string,
   params: any,
   data: T,
-  options?: CacheOptions
+  options?: CacheOptions,
 ): Promise<void> {
   try {
     const cacheKey = generateCacheKey(operationType, params);
@@ -80,7 +83,7 @@ export async function setCachedData<T>(
         expires_at: expiresAt.toISOString(),
         last_accessed_at: new Date().toISOString(),
       },
-      { onConflict: "cache_key" }
+      { onConflict: "cache_key" },
     );
 
     console.log(`Cached ${operationType} data for ${ttl} minutes`);
@@ -89,6 +92,7 @@ export async function setCachedData<T>(
   }
 }
 
+// Persist quota usage events and update aggregate counters
 export async function logQuotaUsage(entry: QuotaLogEntry): Promise<void> {
   try {
     await supabase.from("youtube_quota_logs").insert({
@@ -125,13 +129,16 @@ export async function logQuotaUsage(entry: QuotaLogEntry): Promise<void> {
         })
         .eq("api_key_type", entry.apiKeyType);
 
-      console.log(`Quota exhausted for ${entry.apiKeyType} key. Resets at ${resetAt.toISOString()}`);
+      console.log(
+        `Quota exhausted for ${entry.apiKeyType} key. Resets at ${resetAt.toISOString()}`,
+      );
     }
   } catch (error) {
     console.error("Error logging quota usage:", error);
   }
 }
 
+// Fetch current quota exhaustion status for primary and backup keys
 export async function getQuotaStatus(): Promise<{
   primary: { isExhausted: boolean; resetAt: string | null };
   backup: { isExhausted: boolean; resetAt: string | null };
@@ -173,6 +180,7 @@ export async function getQuotaStatus(): Promise<{
   }
 }
 
+// Remove expired cache entries via Supabase RPC helper
 export async function cleanupExpiredCache(): Promise<void> {
   try {
     const { error } = await supabase.rpc("cleanup_expired_cache");
@@ -183,9 +191,12 @@ export async function cleanupExpiredCache(): Promise<void> {
   }
 }
 
+// Compute the next midnight PST timestamp (YouTube quota reset)
 export function getMidnightPST(): Date {
   const now = new Date();
-  const pst = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  const pst = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
+  );
 
   pst.setDate(pst.getDate() + 1);
   pst.setHours(0, 0, 0, 0);

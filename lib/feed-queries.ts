@@ -1,14 +1,15 @@
-import { prisma } from './prisma';
-import { Source, ContentItem } from '@prisma/client';
+import { prisma } from "./prisma";
+import { Source, ContentItem } from "@prisma/client";
 
 export type SourceWithRecentContent = Source & {
   recentContent: ContentItem[];
   totalContentCount: number;
 };
 
+// Return followed sources along with recent content and total counts
 export async function getFollowedSourcesWithRecentContent(
   userId: string,
-  limit: number = 3
+  limit: number = 3,
 ): Promise<SourceWithRecentContent[]> {
   const follows = await prisma.userFollow.findMany({
     where: { userId },
@@ -16,13 +17,13 @@ export async function getFollowedSourcesWithRecentContent(
       source: {
         include: {
           contentItems: {
-            orderBy: { publishedAt: 'desc' },
+            orderBy: { publishedAt: "desc" },
             take: limit,
           },
         },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 
   return await Promise.all(
@@ -36,12 +37,13 @@ export async function getFollowedSourcesWithRecentContent(
         recentContent: follow.source.contentItems,
         totalContentCount: totalCount,
       };
-    })
+    }),
   );
 }
 
+// Return global sources with recent content and total counts
 export async function getGlobalSourcesWithRecentContent(
-  limit: number = 3
+  limit: number = 3,
 ): Promise<SourceWithRecentContent[]> {
   const sources = await prisma.source.findMany({
     where: {
@@ -50,11 +52,11 @@ export async function getGlobalSourcesWithRecentContent(
     },
     include: {
       contentItems: {
-        orderBy: { publishedAt: 'desc' },
+        orderBy: { publishedAt: "desc" },
         take: limit,
       },
     },
-    orderBy: { name: 'asc' },
+    orderBy: { name: "asc" },
   });
 
   return await Promise.all(
@@ -68,10 +70,11 @@ export async function getGlobalSourcesWithRecentContent(
         recentContent: source.contentItems,
         totalContentCount: totalCount,
       };
-    })
+    }),
   );
 }
 
+// Fetch a content item by ID with its source included
 export async function getContentItemById(id: string) {
   return prisma.contentItem.findUnique({
     where: { id },
@@ -81,10 +84,11 @@ export async function getContentItemById(id: string) {
   });
 }
 
+// Fetch neighboring content items by published date within the same source
 export async function getAdjacentContentItems(
   sourceId: string,
   currentItemId: string,
-  publishedAt: Date | null
+  publishedAt: Date | null,
 ) {
   if (!publishedAt) {
     return { previous: null, next: null };
@@ -96,14 +100,14 @@ export async function getAdjacentContentItems(
         sourceId,
         publishedAt: { gt: publishedAt },
       },
-      orderBy: { publishedAt: 'asc' },
+      orderBy: { publishedAt: "asc" },
     }),
     prisma.contentItem.findFirst({
       where: {
         sourceId,
         publishedAt: { lt: publishedAt },
       },
-      orderBy: { publishedAt: 'desc' },
+      orderBy: { publishedAt: "desc" },
     }),
   ]);
 

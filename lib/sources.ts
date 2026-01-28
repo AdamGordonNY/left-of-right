@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 import {
   Source,
   ContentItem,
@@ -7,33 +7,36 @@ import {
   InsertContentItem,
   UpdateSource,
   UpdateContentItem,
-} from './database.types';
+} from "./database.types";
 
+// Fetch active sources from Supabase ordered by name
 export async function getSources(): Promise<Source[]> {
   const { data, error } = await supabase
-    .from('sources')
-    .select('*')
-    .eq('is_active', true)
-    .order('name');
+    .from("sources")
+    .select("*")
+    .eq("is_active", true)
+    .order("name");
 
   if (error) throw error;
   return data || [];
 }
 
+// Look up a source by ID from Supabase
 export async function getSourceById(id: string): Promise<Source | null> {
   const { data, error } = await supabase
-    .from('sources')
-    .select('*')
-    .eq('id', id)
+    .from("sources")
+    .select("*")
+    .eq("id", id)
     .maybeSingle();
 
   if (error) throw error;
   return data;
 }
 
+// Create a source record in Supabase
 export async function createSource(source: InsertSource): Promise<Source> {
   const { data, error } = await supabase
-    .from('sources')
+    .from("sources")
     .insert(source)
     .select()
     .single();
@@ -42,11 +45,15 @@ export async function createSource(source: InsertSource): Promise<Source> {
   return data;
 }
 
-export async function updateSource(id: string, updates: UpdateSource): Promise<Source> {
+// Update a source record in Supabase
+export async function updateSource(
+  id: string,
+  updates: UpdateSource,
+): Promise<Source> {
   const { data, error } = await supabase
-    .from('sources')
+    .from("sources")
     .update(updates)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
@@ -54,42 +61,49 @@ export async function updateSource(id: string, updates: UpdateSource): Promise<S
   return data;
 }
 
+// Delete a source record in Supabase
 export async function deleteSource(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('sources')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from("sources").delete().eq("id", id);
 
   if (error) throw error;
 }
 
+// Fetch content items with their source from Supabase
 export async function getContentItems(): Promise<ContentItemWithSource[]> {
   const { data, error } = await supabase
-    .from('content_items')
-    .select(`
+    .from("content_items")
+    .select(
+      `
       *,
       source:sources(*)
-    `)
-    .order('published_at', { ascending: false });
+    `,
+    )
+    .order("published_at", { ascending: false });
 
   if (error) throw error;
   return data || [];
 }
 
-export async function getContentItemsBySource(sourceId: string): Promise<ContentItem[]> {
+// Fetch content items for a specific source
+export async function getContentItemsBySource(
+  sourceId: string,
+): Promise<ContentItem[]> {
   const { data, error } = await supabase
-    .from('content_items')
-    .select('*')
-    .eq('source_id', sourceId)
-    .order('published_at', { ascending: false });
+    .from("content_items")
+    .select("*")
+    .eq("source_id", sourceId)
+    .order("published_at", { ascending: false });
 
   if (error) throw error;
   return data || [];
 }
 
-export async function createContentItem(item: InsertContentItem): Promise<ContentItem> {
+// Create a content item in Supabase
+export async function createContentItem(
+  item: InsertContentItem,
+): Promise<ContentItem> {
   const { data, error } = await supabase
-    .from('content_items')
+    .from("content_items")
     .insert(item)
     .select()
     .single();
@@ -98,11 +112,15 @@ export async function createContentItem(item: InsertContentItem): Promise<Conten
   return data;
 }
 
-export async function updateContentItem(id: string, updates: UpdateContentItem): Promise<ContentItem> {
+// Update a content item in Supabase
+export async function updateContentItem(
+  id: string,
+  updates: UpdateContentItem,
+): Promise<ContentItem> {
   const { data, error } = await supabase
-    .from('content_items')
+    .from("content_items")
     .update(updates)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
@@ -110,11 +128,9 @@ export async function updateContentItem(id: string, updates: UpdateContentItem):
   return data;
 }
 
+// Delete a content item in Supabase
 export async function deleteContentItem(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('content_items')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from("content_items").delete().eq("id", id);
 
   if (error) throw error;
 }

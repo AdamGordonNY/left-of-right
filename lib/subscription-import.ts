@@ -9,9 +9,10 @@ export interface SubscriptionImportResult {
   errors: string[];
 }
 
+// Import a user's YouTube subscriptions and follow or create sources accordingly
 export async function importYouTubeSubscriptions(
   clerkUserId: string,
-  dbUserId: string
+  dbUserId: string,
 ): Promise<SubscriptionImportResult> {
   const result: SubscriptionImportResult = {
     success: false,
@@ -35,7 +36,7 @@ export async function importYouTubeSubscriptions(
 
     const subscriptions = await getUserSubscriptions(accessToken);
     console.log(
-      `Found ${subscriptions.length} subscriptions for user ${clerkUserId}`
+      `Found ${subscriptions.length} subscriptions for user ${clerkUserId}`,
     );
 
     if (subscriptions.length === 0) {
@@ -47,7 +48,7 @@ export async function importYouTubeSubscriptions(
       try {
         if (!subscription.channelId) {
           result.errors.push(
-            `Skipping subscription with missing channel ID: ${subscription.channelTitle}`
+            `Skipping subscription with missing channel ID: ${subscription.channelTitle}`,
           );
           continue;
         }
@@ -110,7 +111,7 @@ export async function importYouTubeSubscriptions(
 
     result.success = true;
     console.log(
-      `Subscription import complete: ${result.channelsAdded} added, ${result.channelsLinked} linked`
+      `Subscription import complete: ${result.channelsAdded} added, ${result.channelsLinked} linked`,
     );
   } catch (error) {
     console.error("Error importing YouTube subscriptions:", error);

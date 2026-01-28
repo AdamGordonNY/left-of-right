@@ -1,6 +1,7 @@
 import { Source } from "@prisma/client";
 import { prisma } from "./prisma";
 
+// Generate a URL-friendly slug from a source name
 export function generateSlug(name: string): string {
   return name
     .toLowerCase()
@@ -10,9 +11,10 @@ export function generateSlug(name: string): string {
     .replace(/-+/g, "-");
 }
 
+// Find an accessible source that matches the given slug
 export async function getSourceBySlug(
   slug: string,
-  userId?: string
+  userId?: string,
 ): Promise<Source | null> {
   const where = userId
     ? {
@@ -30,9 +32,10 @@ export async function getSourceBySlug(
   return source || null;
 }
 
+// Resolve either a slug or ID to a source while enforcing access rules
 export async function getSourceBySlugOrId(
   slugOrId: string,
-  userId?: string
+  userId?: string,
 ): Promise<Source | null> {
   const bySlug = await getSourceBySlug(slugOrId, userId);
   if (bySlug) return bySlug;

@@ -1,5 +1,10 @@
 import { google, youtube_v3 } from "googleapis";
-import { getCachedData, setCachedData, logQuotaUsage, getMidnightPST } from "./youtube-cache";
+import {
+  getCachedData,
+  setCachedData,
+  logQuotaUsage,
+  getMidnightPST,
+} from "./youtube-cache";
 
 export class QuotaExhaustedError extends Error {
   public resetAt: Date;
@@ -35,10 +40,10 @@ class YouTubeClientManager {
     }
   }
 
+  // Build an authenticated YouTube client using the current key (primary or backup)
   getClient(): youtube_v3.Youtube {
-    const apiKey = this.usingBackupKey && this.backupKey
-      ? this.backupKey
-      : this.primaryKey;
+    const apiKey =
+      this.usingBackupKey && this.backupKey ? this.backupKey : this.primaryKey;
 
     return google.youtube({
       version: "v3",
@@ -46,6 +51,7 @@ class YouTubeClientManager {
     });
   }
 
+  // Build an OAuth-authenticated YouTube client using a bearer token
   getAuthenticatedClient(accessToken: string): youtube_v3.Youtube {
     return google.youtube({
       version: "v3",
@@ -55,36 +61,44 @@ class YouTubeClientManager {
     });
   }
 
+  // Detect quota-related errors from YouTube API responses
   isQuotaExceededError(error: any): boolean {
     if (!error || typeof error !== "object") return false;
 
     const apiError = error as YouTubeApiError;
 
     if (apiError.code === 403) {
-      const quotaReasons = ["quotaExceeded", "dailyLimitExceeded", "rateLimitExceeded"];
+      const quotaReasons = [
+        "quotaExceeded",
+        "dailyLimitExceeded",
+        "rateLimitExceeded",
+      ];
 
       if (apiError.errors && Array.isArray(apiError.errors)) {
-        return apiError.errors.some(err =>
-          err.reason && quotaReasons.includes(err.reason)
+        return apiError.errors.some(
+          (err) => err.reason && quotaReasons.includes(err.reason),
         );
       }
 
       if (apiError.message) {
         const message = apiError.message.toLowerCase();
-        return message.includes("quota") ||
-               message.includes("rate limit") ||
-               message.includes("daily limit");
+        return (
+          message.includes("quota") ||
+          message.includes("rate limit") ||
+          message.includes("daily limit")
+        );
       }
     }
 
     return false;
   }
 
+  // Execute an API call with automatic quota logging, caching, and backup-key fallback
   async executeWithFallback<T>(
     operation: (client: youtube_v3.Youtube) => Promise<T>,
     operationType: string,
     params: any = {},
-    cacheOptions?: { ttlMinutes?: number }
+    cacheOptions?: { ttlMinutes?: number },
   ): Promise<T> {
     const keyType = this.usingBackupKey ? "backup" : "primary";
 
@@ -115,7 +129,9 @@ class YouTubeClientManager {
         });
 
         if (!this.usingBackupKey && this.backupKey) {
-          console.warn("Primary YouTube API key quota exceeded. Switching to backup key...");
+          console.warn(
+            "Primary YouTube API key quota exceeded. Switching to backup key...",
+          );
           this.usingBackupKey = true;
 
           try {
@@ -156,7 +172,7 @@ class YouTubeClientManager {
               const resetAt = getMidnightPST();
               throw new QuotaExhaustedError(
                 "YouTube API quota exceeded for all available keys. Please try again after midnight PST.",
-                resetAt
+                resetAt,
               );
             }
 
@@ -181,7 +197,7 @@ class YouTubeClientManager {
         const resetAt = getMidnightPST();
         throw new QuotaExhaustedError(
           "YouTube API quota exceeded. Please try again after midnight PST.",
-          resetAt
+          resetAt,
         );
       }
 
@@ -197,6 +213,7 @@ class YouTubeClientManager {
     }
   }
 
+  // Reset the client to use the primary key after falling back
   resetTorimaryKey(): void {
     if (this.usingBackupKey) {
       console.log("Resetting YouTube API client to use primary key");
@@ -204,10 +221,12 @@ class YouTubeClientManager {
     }
   }
 
+  // Report whether the backup key is currently active
   isUsingBackupKey(): boolean {
     return this.usingBackupKey;
   }
 
+  // Report whether a backup key is configured
   hasBackupKey(): boolean {
     return this.backupKey !== null && this.backupKey.length > 0;
   }
@@ -219,15 +238,24 @@ export function getYouTubeClient(): youtube_v3.Youtube {
   return youtubeClientManager.getClient();
 }
 
-export function getAuthenticatedYouTubeClient(accessToken: string): youtube_v3.Youtube {
+// Build an OAuth-authenticated client for user-scoped operations
+export function getAuthenticatedYouTubeClient(
+  accessToken: string,
+): youtube_v3.Youtube {
   return youtubeClientManager.getAuthenticatedClient(accessToken);
 }
 
+// Execute a YouTube operation with quota handling and optional caching
 export async function executeYouTubeOperation<T>(
   operation: (client: youtube_v3.Youtube) => Promise<T>,
   operationType: string,
   params: any = {},
-  cacheOptions?: { ttlMinutes?: number }
+  cacheOptions?: { ttlMinutes?: number },
 ): Promise<T> {
-  return youtubeClientManager.executeWithFallback(operation, operationType, params, cacheOptions);
+  return youtubeClientManager.executeWithFallback(
+    operation,
+    operationType,
+    params,
+    cacheOptions,
+  );
 }

@@ -57,22 +57,25 @@ export class YouTubeClientManager {
 
       if (!this.primaryKey) {
         throw new Error(
-          "YOUTUBE_API_KEY environment variable is not configured"
+          "YOUTUBE_API_KEY environment variable is not configured",
         );
       }
     }
   }
 
+  // Identify whether the manager is currently using the primary or backup key
   getCurrentKeyType(): "primary" | "backup" {
     return this.usingBackupKey ? "backup" : "primary";
   }
 
+  // Return the actual API key string in use
   getCurrentApiKey(): string {
     return this.usingBackupKey && this.backupKey
       ? this.backupKey
       : this.primaryKey;
   }
 
+  // Detect YouTube quota-related errors by inspecting the API response shape
   isQuotaExceededError(error: any): boolean {
     if (!error || typeof error !== "object") return false;
 
@@ -87,7 +90,7 @@ export class YouTubeClientManager {
 
       if (apiError.errors && Array.isArray(apiError.errors)) {
         return apiError.errors.some(
-          (err) => err.reason && quotaReasons.includes(err.reason)
+          (err) => err.reason && quotaReasons.includes(err.reason),
         );
       }
 
@@ -104,6 +107,7 @@ export class YouTubeClientManager {
     return false;
   }
 
+  // Validate quota status and potentially switch to backup before issuing a request
   async checkQuotaBeforeRequest(): Promise<void> {
     // Use user-specific quota if this is a user's API key
     const status =
@@ -119,12 +123,13 @@ export class YouTubeClientManager {
         const resetAt = getMidnightPST();
         throw new QuotaExhaustedError(
           "YouTube API quota exceeded. Please try again after midnight PST.",
-          resetAt
+          resetAt,
         );
       }
     }
   }
 
+  // Execute an operation with optional caching and automatic fallback handling
   async executeWithFallback<T>(
     operation: (apiKey: string) => Promise<T>,
     operationType: string,
@@ -132,7 +137,7 @@ export class YouTubeClientManager {
     options: {
       useCache?: boolean;
       revalidate?: number;
-    } = {}
+    } = {},
   ): Promise<T> {
     // Check quota status before making request
     await this.checkQuotaBeforeRequest();
@@ -148,7 +153,7 @@ export class YouTubeClientManager {
         {
           tags: ["youtube", operationType],
           revalidate: options.revalidate,
-        }
+        },
       );
 
       return cachedFn();
@@ -158,10 +163,11 @@ export class YouTubeClientManager {
     return this.executeRequest(operation, operationType, keyType);
   }
 
+  // Core executor that logs quota usage and handles quota errors/fallbacks
   private async executeRequest<T>(
     operation: (apiKey: string) => Promise<T>,
     operationType: string,
-    keyType: "primary" | "backup"
+    keyType: "primary" | "backup",
   ): Promise<T> {
     try {
       const apiKey = this.getCurrentApiKey();
@@ -187,7 +193,7 @@ export class YouTubeClientManager {
         // Try backup key if not already using it
         if (!this.usingBackupKey && this.backupKey) {
           console.warn(
-            "[YouTube API] Primary key quota exceeded, trying backup key..."
+            "[YouTube API] Primary key quota exceeded, trying backup key...",
           );
           this.usingBackupKey = true;
 
@@ -203,7 +209,7 @@ export class YouTubeClientManager {
             }
 
             console.log(
-              "[YouTube API] Successfully completed request using backup key"
+              "[YouTube API] Successfully completed request using backup key",
             );
             return result;
           } catch (backupError) {
@@ -218,7 +224,7 @@ export class YouTubeClientManager {
               const resetAt = getMidnightPST();
               throw new QuotaExhaustedError(
                 "YouTube API quota exceeded for all available keys. Please try again after midnight PST.",
-                resetAt
+                resetAt,
               );
             }
 
@@ -235,7 +241,7 @@ export class YouTubeClientManager {
         const resetAt = getMidnightPST();
         throw new QuotaExhaustedError(
           "YouTube API quota exceeded. Please try again after midnight PST.",
-          resetAt
+          resetAt,
         );
       }
 
@@ -249,6 +255,7 @@ export class YouTubeClientManager {
     }
   }
 
+  // Reset to primary key after a fallback session
   resetToPrimaryKey(): void {
     if (this.usingBackupKey) {
       console.log("[YouTube API] Resetting to use primary key");
@@ -256,10 +263,12 @@ export class YouTubeClientManager {
     }
   }
 
+  // Report whether the backup key is currently active
   isUsingBackupKey(): boolean {
     return this.usingBackupKey;
   }
 
+  // Report whether a backup key exists
   hasBackupKey(): boolean {
     return this.backupKey !== null && this.backupKey.length > 0;
   }
@@ -272,7 +281,7 @@ export const youtubeClientManager = new YouTubeClientManager();
  * Will use user's API keys if available, otherwise falls back to system keys
  */
 export async function createUserYouTubeClient(
-  userId: string
+  userId: string,
 ): Promise<YouTubeClientManager> {
   // Check if feature flag is enabled
   const userKeysEnabled = process.env.ENABLE_USER_API_KEYS === "true";
@@ -313,6 +322,7 @@ export async function createUserYouTubeClient(
   return youtubeClientManager;
 }
 
+// Execute a YouTube operation using either system keys or user-specific keys
 export async function executeYouTubeOperation<T>(
   operation: (apiKey: string) => Promise<T>,
   operationType: string,
@@ -321,7 +331,7 @@ export async function executeYouTubeOperation<T>(
     useCache?: boolean;
     revalidate?: number;
     userId?: string; // Optional user ID to use user-specific API keys
-  } = {}
+  } = {},
 ): Promise<T> {
   // Get the appropriate client manager
   let clientManager: YouTubeClientManager;
@@ -336,6 +346,6 @@ export async function executeYouTubeOperation<T>(
     operation,
     operationType,
     params,
-    options
+    options,
   );
 }
