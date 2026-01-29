@@ -9,12 +9,17 @@ import {
 
 /**
  * GET /api/categories/[id]
- * Get a category by ID
- * Query params: ?includeSources=true to include sources
+ * @description Retrieves a category by ID, optionally with its assigned sources
+ * @access Public
+ * @param {NextRequest} request - Query param includeSources=true to include sources
+ * @param {object} params - Route params containing category id
+ * @returns {Promise<NextResponse>} JSON with category data
+ * @throws {404} If category is not found
+ * @throws {500} If database query fails
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -28,7 +33,7 @@ export async function GET(
     if (!category) {
       return NextResponse.json(
         { error: "Category not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -37,18 +42,26 @@ export async function GET(
     console.error("Error fetching category:", error);
     return NextResponse.json(
       { error: "Failed to fetch category" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 /**
  * PATCH /api/categories/[id]
- * Update a category (admin only)
+ * @description Updates a category's properties (name, slug, description, color, icon)
+ * @access Admin only
+ * @param {NextRequest} request - Request body with fields to update
+ * @param {object} params - Route params containing category id
+ * @returns {Promise<NextResponse>} JSON with updated category
+ * @throws {403} If user is not an admin
+ * @throws {404} If category is not found
+ * @throws {409} If updated name or slug conflicts with existing category
+ * @throws {500} If update fails
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const userRole = await getUserRole();
@@ -64,7 +77,7 @@ export async function PATCH(
     if (!category) {
       return NextResponse.json(
         { error: "Category not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -84,24 +97,31 @@ export async function PATCH(
     if (error.code === "P2002") {
       return NextResponse.json(
         { error: "Category with this name or slug already exists" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
     return NextResponse.json(
       { error: "Failed to update category" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 /**
  * DELETE /api/categories/[id]
- * Delete a category (admin only)
+ * @description Deletes a category (removes all source associations)
+ * @access Admin only
+ * @param {NextRequest} request - The incoming request
+ * @param {object} params - Route params containing category id
+ * @returns {Promise<NextResponse>} JSON with success status
+ * @throws {403} If user is not an admin
+ * @throws {404} If category is not found
+ * @throws {500} If deletion fails
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const userRole = await getUserRole();
@@ -115,7 +135,7 @@ export async function DELETE(
     if (!category) {
       return NextResponse.json(
         { error: "Category not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -126,7 +146,7 @@ export async function DELETE(
     console.error("Error deleting category:", error);
     return NextResponse.json(
       { error: "Failed to delete category" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

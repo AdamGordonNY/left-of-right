@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { getQuotaStatus } from "@/lib/youtube-cache";
 
+/**
+ * GET /api/youtube/quota-status
+ * @description Retrieves the current YouTube API quota status for primary and backup keys
+ * @access Public
+ * @returns {Promise<NextResponse>} JSON with quota status for both keys and allExhausted flag
+ * @throws {500} If quota status retrieval fails
+ */
 export async function GET() {
   try {
     const status = await getQuotaStatus();
@@ -21,7 +28,7 @@ export async function GET() {
     console.error("Error fetching quota status:", error);
     return NextResponse.json(
       { error: "Failed to fetch quota status" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

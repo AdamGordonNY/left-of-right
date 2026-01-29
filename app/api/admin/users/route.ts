@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * GET /api/admin/users
+ * @description Retrieves all users with their follows and API key status
+ * @access Admin only
+ * @returns {Promise<NextResponse>} JSON array of users with transformed data (hasApiKey instead of actual key)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {500} If database query fails
+ */
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -76,7 +85,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

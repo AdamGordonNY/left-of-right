@@ -11,6 +11,15 @@ import {
 // This is required for webhooks to work properly in Next.js 15
 export const runtime = "nodejs";
 
+/**
+ * POST /api/webhooks/clerk
+ * @description Handles Clerk webhook events for user lifecycle (created, updated, deleted)
+ * @access Clerk webhooks only (verified via SVIX signature)
+ * @param {Request} req - Raw request with Clerk webhook payload
+ * @returns {Promise<NextResponse>} JSON with processing status
+ * @throws {400} If SVIX headers are missing or signature is invalid
+ * @throws {500} If webhook processing fails
+ */
 export async function POST(req: Request) {
   console.log("Webhook received");
 
@@ -31,7 +40,7 @@ export async function POST(req: Request) {
     console.error("Missing svix headers");
     return NextResponse.json(
       { error: "Missing svix headers" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -44,7 +53,7 @@ export async function POST(req: Request) {
 
   if (!WEBHOOK_SECRET) {
     throw new Error(
-      "Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local"
+      "Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local",
     );
   }
 
@@ -64,7 +73,7 @@ export async function POST(req: Request) {
     console.error("Error verifying webhook:", err);
     return NextResponse.json(
       { error: "Invalid webhook signature" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -88,13 +97,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { message: "Webhook processed successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error processing webhook:", error);
     return NextResponse.json(
       { error: "Error processing webhook" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

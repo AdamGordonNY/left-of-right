@@ -8,9 +8,19 @@ import {
   getPlaylistCount,
 } from "@/lib/prisma-sources";
 
+/**
+ * GET /api/sources/by-slug/[slug]
+ * @description Retrieves a source by its URL-friendly slug with content items and playlists
+ * @access Public (respects source visibility rules)
+ * @param {NextRequest} request - The incoming request
+ * @param {object} params - Route params containing the slug
+ * @returns {Promise<NextResponse>} JSON with source, contentItems, playlists, and playlistCount
+ * @throws {404} If source is not found or user lacks access
+ * @throws {500} If database query fails
+ */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
     const { slug } = await params;
@@ -50,7 +60,7 @@ export async function GET(
     console.error("Error fetching source by slug:", error);
     return NextResponse.json(
       { error: "Failed to fetch source" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

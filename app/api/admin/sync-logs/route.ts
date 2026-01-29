@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * GET /api/admin/sync-logs
+ * @description Retrieves the last 100 sync logs with user information for monitoring
+ * @access Admin only
+ * @returns {Promise<NextResponse>} JSON array of sync logs ordered by startedAt desc
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {500} If database query fails
+ */
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -58,7 +67,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching sync logs:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

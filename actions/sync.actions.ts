@@ -15,6 +15,7 @@ export async function syncYouTubeSource(sourceId: string) {
   let videosUpdated = 0;
   const startedAt = new Date();
   const failedVideos: Array<{ title: string; url: string; error: string }> = [];
+  const logEntries: string[] = []; // Collect detailed log entries
   let logId: string | null = null;
 
   try {
@@ -76,8 +77,26 @@ export async function syncYouTubeSource(sourceId: string) {
 
     // Store videos - stop when we encounter an existing video
     // This assumes videos are ordered chronologically (newest first)
+    logEntries.push(
+      `[${new Date().toISOString()}] Starting video sync for ${source.name}`,
+    );
+    logEntries.push(
+      `[${new Date().toISOString()}] Total videos from API: ${videos.length}`,
+    );
+    console.log(
+      `[SYNC] Starting video sync for ${source.name} - ${videos.length} videos from API`,
+    );
+
     for (const video of videos) {
+      const timestamp = new Date().toISOString();
+      const videoLogPrefix = `[${timestamp}] Video: "${video.title.substring(0, 60)}${video.title.length > 60 ? "..." : ""}" (${video.url})`;
+
       try {
+        console.log(
+          `[SYNC] Attempting to sync video: "${video.title}" - ${video.url}`,
+        );
+        logEntries.push(`${videoLogPrefix} - ATTEMPT`);
+
         const existingVideo = await prisma.contentItem.findFirst({
           where: {
             sourceId: source.id,
@@ -88,9 +107,9 @@ export async function syncYouTubeSource(sourceId: string) {
         if (existingVideo) {
           // Video already exists - this means we've synced up to this point
           // Stop processing to save API quota and processing time
-          console.log(
-            `Found existing video "${video.title}" - stopping sync for ${source.name}`
-          );
+          const stopMsg = `Found existing video "${video.title}" - stopping sync for ${source.name}`;
+          console.log(`[SYNC] ${stopMsg}`);
+          logEntries.push(`${videoLogPrefix} - ALREADY EXISTS (stopping sync)`);
           break;
         } else {
           // New video - add it to the database
@@ -106,17 +125,28 @@ export async function syncYouTubeSource(sourceId: string) {
             },
           });
           videosAdded++;
+          console.log(`[SYNC] ✓ Added new video: "${video.title}"`);
+          logEntries.push(`${videoLogPrefix} - ADDED`);
         }
       } catch (videoError) {
+        const errorMsg =
+          videoError instanceof Error ? videoError.message : "Unknown error";
+        console.error(
+          `[SYNC] ✗ Failed to sync video: "${video.title}" - Error: ${errorMsg}`,
+        );
+        logEntries.push(`${videoLogPrefix} - FAILED: ${errorMsg}`);
         // Log individual video failures
         failedVideos.push({
           title: video.title,
           url: video.url,
-          error:
-            videoError instanceof Error ? videoError.message : "Unknown error",
+          error: errorMsg,
         });
       }
     }
+
+    logEntries.push(
+      `[${new Date().toISOString()}] Sync completed: ${videosAdded} added, ${failedVideos.length} failed`,
+    );
 
     const completedAt = new Date();
 
@@ -129,6 +159,7 @@ export async function syncYouTubeSource(sourceId: string) {
         videosFailed: failedVideos.length,
         totalProcessed: videosAdded + failedVideos.length,
         failedVideos: failedVideos.length > 0 ? failedVideos : undefined,
+        logText: logEntries.join("\n"),
         completedAt,
         metadata: {
           videosInResponse: videos.length,
@@ -151,6 +182,9 @@ export async function syncYouTubeSource(sourceId: string) {
     console.error("Error syncing YouTube source:", error);
 
     // Update sync log with error
+    logEntries.push(
+      `[${new Date().toISOString()}] Sync FAILED: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
     if (logId) {
       await prisma.syncLog.update({
         where: { id: logId },
@@ -162,6 +196,7 @@ export async function syncYouTubeSource(sourceId: string) {
           errorMessage:
             error instanceof Error ? error.message : "Unknown error",
           failedVideos: failedVideos.length > 0 ? failedVideos : undefined,
+          logText: logEntries.join("\n"),
           completedAt: new Date(),
         },
       });
@@ -276,8 +311,8 @@ export async function syncAllYouTubeSources() {
         status: quotaExceeded
           ? "failed"
           : failedSources.length > 0
-          ? "partial"
-          : "success",
+            ? "partial"
+            : "success",
         videosAdded: totalVideosAdded,
         videosFailed: 0,
         totalProcessed: sourcesProcessed,

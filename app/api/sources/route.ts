@@ -7,12 +7,16 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * GET /api/sources
- * Get all sources (for admin category management)
+ * @description Retrieves all sources for admin category management
+ * @access Admin only
+ * @returns {Promise<NextResponse>} JSON response with sources array or error
+ * @throws {403} If user is not an admin
+ * @throws {500} If database query fails
  */
 export async function GET(request: NextRequest) {
   try {
     const userRole = await getUserRole();
-    
+
     // Only admins can list all sources
     if (userRole !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -36,11 +40,21 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching sources:", error);
     return NextResponse.json(
       { error: "Failed to fetch sources" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
+/**
+ * POST /api/sources
+ * @description Creates a new YouTube or Substack source with optional auto-fetched metadata
+ * @access Authenticated users (admins create global sources by default)
+ * @param {NextRequest} request - Request body containing name, type, url, description, avatarUrl, isGlobal, fetchMetadata
+ * @returns {Promise<NextResponse>} JSON response with created source or error
+ * @throws {401} If user is not authenticated
+ * @throws {400} If required fields are missing or type is invalid
+ * @throws {500} If source creation fails
+ */
 export async function POST(request: NextRequest) {
   try {
     const dbUserId = await ensureUserExists();
@@ -55,14 +69,14 @@ export async function POST(request: NextRequest) {
     if (!type || !url) {
       return NextResponse.json(
         { error: "Missing required fields: type, url" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (type !== "youtube" && type !== "substack") {
       return NextResponse.json(
         { error: "Invalid type. Must be youtube or substack" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -128,7 +142,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating source:", error);
     return NextResponse.json(
       { error: "Failed to create source" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

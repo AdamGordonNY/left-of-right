@@ -185,6 +185,7 @@ model SyncLog {
   errorMessage   String?   @db.Text
   failedVideos   Json? // Array of { title, url, error }
   metadata       Json? // Additional context like API quota used, etc.
+  logText        String?   @db.Text // Detailed sync log with each video attempt
   startedAt      DateTime
   completedAt    DateTime?
   createdAt      DateTime  @default(now())

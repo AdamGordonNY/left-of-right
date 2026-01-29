@@ -3,7 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
 import { validateYouTubeApiKey } from "@/lib/encryption";
 
-// POST /api/user/validate-youtube-key - Validate YouTube API keys
+/**
+ * POST /api/user/validate-youtube-key
+ * @description Validates YouTube API keys by making a test API call
+ * @access Authenticated users
+ * @param {NextRequest} request - Request body with primaryKey and/or backupKey to validate
+ * @returns {Promise<NextResponse>} JSON with validation results for each key (valid boolean and message)
+ * @throws {401} If user is not authenticated
+ * @throws {500} If validation process fails
+ */
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -125,7 +133,7 @@ export async function POST(request: NextRequest) {
     console.error("[API] Error validating API keys:", error);
     return NextResponse.json(
       { error: "Failed to validate API keys" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * POST /api/cron/reset-quotas
- * Resets all user YouTube API quota counters
- * Should be called daily at midnight PST (8am UTC)
- *
- * Protected by CRON_SECRET environment variable
+ * @description Resets all user YouTube API quota counters (should run daily at midnight PST)
+ * @access Protected by CRON_SECRET Bearer token
+ * @param {NextRequest} request - Must include Authorization: Bearer {CRON_SECRET} header
+ * @returns {Promise<NextResponse>} JSON with success status, resetCount, and timestamp
+ * @throws {401} If authorization header is missing or invalid
+ * @throws {500} If CRON_SECRET not configured or reset fails
  */
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +20,7 @@ export async function POST(request: NextRequest) {
       console.error("[Cron] CRON_SECRET environment variable not configured");
       return NextResponse.json(
         { error: "Cron secret not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
             backup: { requestsToday: 0, isExhausted: false },
           },
         },
-      })
+      }),
     );
 
     await Promise.all(resetPromises);
@@ -68,14 +70,19 @@ export async function POST(request: NextRequest) {
     console.error("[Cron] Error resetting quotas:", error);
     return NextResponse.json(
       { error: "Failed to reset quotas" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 /**
  * GET /api/cron/reset-quotas
- * Get information about the cron job
+ * @description Retrieves cron job information including users with keys and exhausted quota count
+ * @access Protected by CRON_SECRET Bearer token
+ * @param {NextRequest} request - Must include Authorization: Bearer {CRON_SECRET} header
+ * @returns {Promise<NextResponse>} JSON with usersWithKeys, exhaustedCount, nextResetTime, cronSchedule
+ * @throws {401} If authorization header is missing or invalid
+ * @throws {500} If CRON_SECRET not configured or query fails
  */
 export async function GET(request: NextRequest) {
   try {
@@ -86,7 +93,7 @@ export async function GET(request: NextRequest) {
     if (!cronSecret) {
       return NextResponse.json(
         { error: "Cron secret not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -132,7 +139,7 @@ export async function GET(request: NextRequest) {
     console.error("[Cron] Error getting cron info:", error);
     return NextResponse.json(
       { error: "Failed to get cron info" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

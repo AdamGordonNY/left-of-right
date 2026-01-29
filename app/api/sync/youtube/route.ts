@@ -13,12 +13,13 @@ export const maxDuration = 60;
 
 /**
  * POST /api/sync/youtube
- * Syncs videos from YouTube sources
- *
- * Body:
- * - sourceId?: string - Sync specific source (optional)
- * - includePlaylists?: boolean - Also sync playlists (default: false)
- * - maxVideos?: number - Max videos to fetch per channel (default: 50)
+ * @description Syncs videos from YouTube sources to local database
+ * @access Authenticated users
+ * @param {NextRequest} request - Request body with optional sourceId, includePlaylists, maxVideos
+ * @returns {Promise<NextResponse>} JSON with sync results (videosAdded, videosUpdated, playlistsAdded, errors)
+ * @throws {401} If user is not authenticated
+ * @throws {404} If user not found or no YouTube sources found
+ * @throws {500} If YouTube API key not configured or sync fails
  */
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (!process.env.YOUTUBE_API_KEY) {
       return NextResponse.json(
         { error: "YouTube API key not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
     if (sources.length === 0) {
       return NextResponse.json(
         { error: "No YouTube sources found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -99,24 +100,37 @@ export async function POST(request: NextRequest) {
     // Sync each source
     for (const source of sources) {
       try {
-        console.log(`Syncing YouTube source: ${source.name}`);
+        console.log(
+          `[SYNC API] Starting sync for YouTube source: ${source.name}`,
+        );
 
         // Extract channel ID from URL
         const channelId = await getChannelIdFromUrl(source.url);
 
         if (!channelId) {
+          console.error(
+            `[SYNC API] ✗ Failed to extract channel ID from ${source.name}`,
+          );
           syncResults.errors.push(
-            `Failed to extract channel ID from ${source.name}`
+            `Failed to extract channel ID from ${source.name}`,
           );
           continue;
         }
 
+        console.log(`[SYNC API] Channel ID extracted: ${channelId}`);
+
         // Fetch videos from channel (pass user ID for user-specific API keys)
         const videos = await getChannelVideos(channelId, maxVideos, userDbId);
+        console.log(
+          `[SYNC API] Fetched ${videos.length} videos from YouTube API for ${source.name}`,
+        );
 
         // Store videos in database
         for (const video of videos) {
+          const videoLogPrefix = `[SYNC API] Video: "${video.title.substring(0, 50)}${video.title.length > 50 ? "..." : ""}"`;
           try {
+            console.log(`${videoLogPrefix} - Attempting sync (${video.url})`);
+
             // Check if video already exists
             const existingVideo = await prisma.contentItem.findFirst({
               where: {
@@ -137,6 +151,7 @@ export async function POST(request: NextRequest) {
                 },
               });
               syncResults.videosUpdated++;
+              console.log(`${videoLogPrefix} - UPDATED`);
             } else {
               // Create new video
               await prisma.contentItem.create({
@@ -151,14 +166,21 @@ export async function POST(request: NextRequest) {
                 },
               });
               syncResults.videosAdded++;
+              console.log(`${videoLogPrefix} - ADDED`);
             }
           } catch (error) {
-            console.error(`Error storing video ${video.id}:`, error);
+            const errorMsg =
+              error instanceof Error ? error.message : "Unknown error";
+            console.error(`${videoLogPrefix} - FAILED: ${errorMsg}`);
             syncResults.errors.push(
-              `Failed to store video: ${video.title.substring(0, 50)}`
+              `Failed to store video: ${video.title.substring(0, 50)}`,
             );
           }
         }
+
+        console.log(
+          `[SYNC API] Completed sync for ${source.name}: ${syncResults.videosAdded} added, ${syncResults.videosUpdated} updated`,
+        );
 
         // Optionally sync playlists
         if (includePlaylists) {
@@ -166,7 +188,7 @@ export async function POST(request: NextRequest) {
             const playlists = await getChannelPlaylists(
               channelId,
               50,
-              userDbId
+              userDbId,
             );
 
             for (const playlist of playlists) {
@@ -195,7 +217,7 @@ export async function POST(request: NextRequest) {
           } catch (error) {
             console.error(`Error syncing playlists for ${source.name}:`, error);
             syncResults.errors.push(
-              `Failed to sync playlists for ${source.name}`
+              `Failed to sync playlists for ${source.name}`,
             );
           }
         }
@@ -213,14 +235,21 @@ export async function POST(request: NextRequest) {
     console.error("Error in YouTube sync:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 /**
- * GET /api/sync/youtube?sourceId=xxx
- * Get sync status for a YouTube source
+ * GET /api/sync/youtube
+ * @description Retrieves sync status for a YouTube source (video count, last synced)
+ * @access Authenticated users
+ * @param {NextRequest} request - Query param sourceId required
+ * @returns {Promise<NextResponse>} JSON with sourceId, sourceName, videoCount, lastVideoPublished, lastSynced
+ * @throws {401} If user is not authenticated
+ * @throws {400} If sourceId query param is missing
+ * @throws {404} If source is not found
+ * @throws {500} If status retrieval fails
  */
 export async function GET(request: NextRequest) {
   try {
@@ -236,7 +265,7 @@ export async function GET(request: NextRequest) {
     if (!sourceId) {
       return NextResponse.json(
         { error: "sourceId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -275,7 +304,7 @@ export async function GET(request: NextRequest) {
     console.error("Error getting sync status:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

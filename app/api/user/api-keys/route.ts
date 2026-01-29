@@ -8,7 +8,15 @@ import {
   validateYouTubeApiKey,
 } from "@/lib/encryption";
 
-// GET /api/user/api-keys - Get user's API key information
+/**
+ * GET /api/user/api-keys
+ * @description Retrieves user's YouTube API key information with masked values
+ * @access Authenticated users
+ * @returns {Promise<NextResponse>} JSON with hasPrimaryKey, hasBackupKey, masked keys, and quota status
+ * @throws {401} If user is not authenticated
+ * @throws {404} If user is not found
+ * @throws {500} If retrieval fails
+ */
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -53,12 +61,22 @@ export async function GET(request: NextRequest) {
     console.error("[API] Error getting API keys:", error);
     return NextResponse.json(
       { error: "Failed to get API keys" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-// POST /api/user/api-keys - Save or update API keys
+/**
+ * POST /api/user/api-keys
+ * @description Saves or updates user's YouTube API keys (encrypted before storage)
+ * @access Authenticated users
+ * @param {NextRequest} request - Request body with primaryKey and/or backupKey
+ * @returns {Promise<NextResponse>} JSON with success status and message
+ * @throws {401} If user is not authenticated
+ * @throws {400} If no keys provided or key format is invalid
+ * @throws {404} If user is not found
+ * @throws {500} If save fails
+ */
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -74,7 +92,7 @@ export async function POST(request: NextRequest) {
     if (!primaryKey && !backupKey) {
       return NextResponse.json(
         { error: "At least one API key must be provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -82,14 +100,14 @@ export async function POST(request: NextRequest) {
     if (primaryKey && !validateYouTubeApiKey(primaryKey)) {
       return NextResponse.json(
         { error: "Invalid primary API key format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (backupKey && !validateYouTubeApiKey(backupKey)) {
       return NextResponse.json(
         { error: "Invalid backup API key format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -144,12 +162,21 @@ export async function POST(request: NextRequest) {
     console.error("[API] Error saving API keys:", error);
     return NextResponse.json(
       { error: "Failed to save API keys" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-// DELETE /api/user/api-keys - Delete an API key
+/**
+ * DELETE /api/user/api-keys
+ * @description Deletes a user's YouTube API key (primary or backup)
+ * @access Authenticated users
+ * @param {NextRequest} request - Query param type=primary|backup required
+ * @returns {Promise<NextResponse>} JSON with success status and message
+ * @throws {401} If user is not authenticated
+ * @throws {400} If type param is missing or invalid
+ * @throws {500} If deletion fails
+ */
 export async function DELETE(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -164,7 +191,7 @@ export async function DELETE(request: NextRequest) {
     if (!type || (type !== "primary" && type !== "backup")) {
       return NextResponse.json(
         { error: 'Invalid type parameter. Must be "primary" or "backup"' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -196,7 +223,7 @@ export async function DELETE(request: NextRequest) {
     console.error("[API] Error deleting API key:", error);
     return NextResponse.json(
       { error: "Failed to delete API key" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
